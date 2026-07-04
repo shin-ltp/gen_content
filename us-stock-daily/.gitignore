@@ -1,0 +1,9 @@
+﻿# 認証情報
+.env
+.env.local
+.env.*.local
+
+# 一時的なファイル
+*.tmp
+*.temp
+.DS_Store
