@@ -35,6 +35,16 @@ us-stock-daily/
 ├── data-sources/                   # 情報源メタ・バリュエーションガイド
 │   ├── account-checklist.md        # 情報源登録チェックリスト
 │   └── sector-valuation-guide.md   # セクター別バリュエーション早見表
+├── db/                             # 定期更新データ層（PLAN.md 3.9 節）
+│   ├── market-data.sqlite3         # DB 本体（派生データ・gitignore）
+│   ├── schema.sql                  # 表・ビュー定義
+│   ├── refresh.py                  # 定期更新バッチ
+│   ├── db_access.py                # 鮾度隠蔽取得 API（能動更新を含む）
+│   └── QUERY_GUIDE.md              # 大モデル向け SQL チートシート
+├── assets/brands/                  # ブランドロゴ共有キャッシュ（PLAN.md 3.10 節）
+│   ├── companies/                  # 企業ロゴ（ticker 別）
+│   ├── media/                      # メディア・情報源ロゴ（出所表示用）
+│   └── manifest.md                 # 取得一覧・取得元URL・ライセンス
 └── daily-output/
     └── YYYY-MM-DD/                 # 1日＝1ディレクトリ（ワークスペース）
         ├── status.md               # Phase 進行状況・品質ゲート結果
@@ -75,6 +85,7 @@ us-stock-daily/
 - モーニングレターは既に選別済みのメール購読を優先
 - **宁可多取也不漏掉（多く取り過ぎてもよいが、絶対に漏らさない）**：収集段階では幅広く集め、絞り込みは Phase 1（triage-agent）に委ねる
 - 収集時は **テキスト＋URLのみ保存**、画像・チャートは採用後に遅延取得（Phase 3）
+- **定期更新データ（Tier B）はローカル DB 経由で取得**：決算財務・マクロ指標・経済カレンダー・目標株価は毎日再取得せず `db/` の SQLite から読む（FRESH なら再取得省略／STALE なら能動更新）。詳細は [PLAN.md 3.9 節](./PLAN.md)
 
 ## インストール済みツール（Skills）
 
