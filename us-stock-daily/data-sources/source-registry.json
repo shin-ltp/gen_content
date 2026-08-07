@@ -1,0 +1,312 @@
+{
+  "_meta": {
+    "description": "机器可读的信源登记簿。收集器遍历本文件逐源抓取。",
+    "version": "1.0",
+    "updated": "2026-08-07",
+    "status_legend": {
+      "ready": "已验证可抓取",
+      "todo": "待实现/验证",
+      "pending-credentials": "需要凭据才能接入"
+    },
+    "collectors": {
+      "collect-wscn.mjs": "wallstreetcn - ready",
+      "collect-rss.mjs": "cnbc 3 feeds - ready",
+      "collect-longbridge.mjs": "indices 4/ stocks 10/ FX/ market temp - ready",
+      "collect-36kr.mjs": "36kr (Playwright headless) - ready",
+      "collect-insights.mjs": "GS(SSR HTTP) / MS.JPM(Playwright headless) - ready",
+      "collect-email.mjs": "Gmail 5 morning reports (Playwright persistent profile) - ready",
+      "collect-all.mjs": "main dispatcher + auto manifest - ready",
+      "seen-store.mjs": "cross-day cross-source dedup DB (db/seen-articles.json)"
+    }
+  },
+  "sources": [
+    {
+      "id": "wallstreetcn",
+      "name": "华尔街见闻",
+      "url": "https://wallstreetcn.com/news/us-stock",
+      "type": "api",
+      "access": {
+        "method": "http",
+        "list_endpoint": "https://api-one-wscn.awtmt.com/apiv1/content/articles?channel=us-stock&limit=50",
+        "detail_url_template": "https://wallstreetcn.com/articles/{id}",
+        "ssr": true,
+        "notes": "列表API返回标题/摘要/来源/股票代码；文章页SSR内嵌全文JSON"
+      },
+      "language": "zh",
+      "filter": "us-stock/AI/半导体/宏观；引用大投行报告的优先",
+      "category_mapping": [
+        "RES",
+        "STK",
+        "MAC",
+        "ERN",
+        "NWS"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "36kr",
+      "name": "36氪",
+      "url": "https://36kr.com",
+      "type": "browser",
+      "access": {
+        "method": "agent-browser-headless",
+        "list_url": "https://36kr.com/newsflashes",
+        "notes": "JS渲染站，agent-browser headless抓取"
+      },
+      "language": "zh",
+      "filter": "AI/软件/半导体/Mag7/OpenAI科技产业深層；一般速报除く",
+      "category_mapping": [
+        "STK",
+        "RES"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "reuters-rss",
+      "name": "Reuters (RSS)",
+      "url": "https://www.reutersagency.com",
+      "type": "rss",
+      "access": {
+        "method": "http",
+        "feeds": [
+          "https://www.reutersagency.com/feed/?best-topics=business-finance",
+          "https://www.reutersagency.com/feed/?best-topics=technology"
+        ]
+      },
+      "language": "en",
+      "filter": "美股相关实时新闻",
+      "category_mapping": [
+        "NWS",
+        "ERN",
+        "STK"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "cnbc-rss",
+      "name": "CNBC (RSS)",
+      "url": "https://www.cnbc.com",
+      "type": "rss",
+      "access": {
+        "method": "http",
+        "feeds": [
+          "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=15839135",
+          "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"
+        ],
+        "notes": "business/technology feeds"
+      },
+      "language": "en",
+      "filter": "美股实时新闻",
+      "category_mapping": [
+        "NWS",
+        "MAC",
+        "STK"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "gs-insights",
+      "name": "Goldman Sachs Insights",
+      "url": "https://www.goldmansachs.com/insights",
+      "type": "html",
+      "access": {
+        "method": "http",
+        "notes": "HTTP 200可访问；含PDF研究报告"
+      },
+      "language": "en",
+      "filter": "AI/科技/宏观/资产配置/数据中心/半导体",
+      "category_mapping": [
+        "RES",
+        "MAC"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "ms-insights",
+      "name": "Morgan Stanley Insights",
+      "url": "https://morganstanley.com/insights",
+      "type": "html",
+      "access": {
+        "method": "agent-browser-headless",
+        "notes": "JS渲染"
+      },
+      "language": "en",
+      "filter": "AI经济/市场趋势/科技",
+      "category_mapping": [
+        "RES",
+        "MAC"
+      ],
+      "priority": "nice-to-have",
+      "status": "ready"
+    },
+    {
+      "id": "jpm-insights",
+      "name": "JPMorgan Insights",
+      "url": "https://www.jpmorgan.com/insights",
+      "type": "html",
+      "access": {
+        "method": "agent-browser-headless",
+        "notes": "JS渲染"
+      },
+      "language": "en",
+      "filter": "全球研究/市场动态/科技",
+      "category_mapping": [
+        "RES",
+        "MAC"
+      ],
+      "priority": "nice-to-have",
+      "status": "ready"
+    },
+    {
+      "id": "blackrock-ibi",
+      "name": "BlackRock Investment Institute",
+      "url": "https://www.blackrock.com/corporate/insights/blackrock-investment-institute",
+      "type": "pdf",
+      "access": {
+        "method": "agent-browser-headless",
+        "notes": "PDF下载+抽取"
+      },
+      "language": "en",
+      "filter": "投资展望/每周评论/Mega Forces",
+      "category_mapping": [
+        "RES",
+        "MAC"
+      ],
+      "priority": "nice-to-have",
+      "status": "todo"
+    },
+    {
+      "id": "newsletter-bloomberg",
+      "name": "Bloomberg Five Things 晨报",
+      "url": "mailto",
+      "type": "email",
+      "access": {
+        "method": "agent-browser-headless",
+        "notes": "邮件在用户邮箱，无头浏览器登录抓取，凭据待填.env"
+      },
+      "language": "en/ja",
+      "filter": "每日精選5条",
+      "category_mapping": [
+        "NWS",
+        "MAC"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "newsletter-wsj",
+      "name": "WSJ Markets A.M. / AI & Business",
+      "url": "mailto",
+      "type": "email",
+      "access": {
+        "method": "agent-browser-headless"
+      },
+      "language": "en",
+      "filter": "市场早报+AI商业",
+      "category_mapping": [
+        "NWS",
+        "STK"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "newsletter-yahoo",
+      "name": "Yahoo Finance Morning Brief",
+      "url": "mailto",
+      "type": "email",
+      "access": {
+        "method": "agent-browser-headless"
+      },
+      "language": "en",
+      "filter": "市场早报",
+      "category_mapping": [
+        "NWS",
+        "MAC"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "newsletter-reuters",
+      "name": "Reuters Morning Wire",
+      "url": "mailto",
+      "type": "email",
+      "access": {
+        "method": "agent-browser-headless"
+      },
+      "language": "en",
+      "filter": "晨间要闻",
+      "category_mapping": [
+        "NWS"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "newsletter-semianalysis",
+      "name": "SemiAnalysis Newsletter",
+      "url": "mailto",
+      "type": "email",
+      "access": {
+        "method": "agent-browser-headless"
+      },
+      "language": "en",
+      "filter": "半导体/科技深層；机构级分析",
+      "category_mapping": [
+        "RES",
+        "STK"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "longbridge-cli",
+      "name": "Longbridge CLI",
+      "url": "cli://longbridge",
+      "type": "cli",
+      "access": {
+        "method": "cli",
+        "binary": "tools/bin/longbridge.exe",
+        "notes": "已登录验证。quote/kline/financial-report/news/filing/macrodata"
+      },
+      "language": "n/a",
+      "filter": "指数/个股/汇率/财报/评级一次数据",
+      "category_mapping": [
+        "MKT",
+        "ERN",
+        "RES"
+      ],
+      "priority": "must-crawl",
+      "status": "ready"
+    },
+    {
+      "id": "searxng-local",
+      "name": "SearXNG (本地，查询补充)",
+      "url": "http://127.0.0.1:8888",
+      "type": "search",
+      "access": {
+        "method": "http",
+        "endpoint": "http://127.0.0.1:8888/search?format=json",
+        "notes": "信源驱动收集的补充：事件追踪/交叉验证/补漏"
+      },
+      "language": "multi",
+      "filter": "按需查询",
+      "category_mapping": [
+        "MKT",
+        "MAC",
+        "RES",
+        "STK",
+        "ERN",
+        "NWS"
+      ],
+      "priority": "supplement",
+      "status": "ready"
+    }
+  ]
+}

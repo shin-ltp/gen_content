@@ -1,0 +1,28 @@
+# SearXNG — us-stock-daily 本机搜索层（仅本机使用）
+# 启动:  cd us-stock-daily/tools/searxng && docker compose up -d
+# 停止:  docker compose down
+# 验证:  .\search.ps1 -Check   （或 Invoke-RestMethod "http://127.0.0.1:8888/search?q=test&format=json"）
+
+services:
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      # ★ 仅绑定 127.0.0.1 — 本机专用，无认证层，绝不改为 0.0.0.0 或去掉前缀
+      - "127.0.0.1:8888:8080"
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=http://127.0.0.1:8888/
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "1"

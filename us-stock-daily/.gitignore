@@ -1,4 +1,4 @@
-﻿# 認証情報
+# 認証情報
 .env
 .env.local
 .env.*.local
@@ -7,3 +7,17 @@
 *.tmp
 *.temp
 .DS_Store
+
+# ツール（バイナリは tools/install-longbridge.ps1 で再現）
+tools/bin/
+tools/dist/
+tools/node_modules/
+tools/*.zip
+tools/longbridge.*.log
+
+# 収集履歴DB（実行時データ・コミットしない）
+db/
+
+# Gmail 浏览器持久化 profile（含 cookies/session）
+tools/collect/.gmail-profile/
+tools/collect/out/
