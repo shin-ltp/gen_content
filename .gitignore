@@ -1,0 +1,9 @@
+# pnpm store
+.pnpm-store/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+*.env.local
