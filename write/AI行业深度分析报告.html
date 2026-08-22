@@ -1,0 +1,457 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 行业发展深度分析报告（2025–2026）</title>
+<style>
+:root{
+  --ink:#0F1B2D;--ink2:#1E2B40;--paper:#fff;--bg:#F4F7FB;--card:#fff;
+  --line:#E3E8EF;--muted:#6B7785;--blue:#2E6BE6;--teal:#00A3A3;
+  --orange:#E8833A;--red:#D7263D;--green:#2BAE66;--purple:#7C5CFF;
+  --amber:#FFB703;--soft-blue:#EAF1FD;--soft-red:#FDECEE;--soft-amber:#FFF6E5;--soft-green:#EAF7EE;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","Noto Sans SC",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.8;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+.hero{background:linear-gradient(135deg,#0F1B2D 0%,#16284a 55%,#1d3a6b 100%);color:#fff;padding:64px 0 52px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(46,107,230,.32),transparent 70%)}
+.hero h1{font-size:2.5rem;margin:0 0 12px;letter-spacing:.5px;font-weight:800}
+.hero .sub{font-size:1.08rem;color:#b9c6de;max-width:800px;font-weight:400}
+.hero .meta{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px}
+.hero .meta span{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);
+  padding:6px 14px;border-radius:999px;font-size:.82rem;color:#dbe5f5}
+.layout{display:grid;grid-template-columns:244px 1fr;gap:36px;padding:36px 0 24px;align-items:start}
+.toc{position:sticky;top:20px;font-size:.88rem;max-height:calc(100vh - 40px);overflow-y:auto;padding-right:6px}
+.toc h4{margin:0 0 10px;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:1px}
+.toc a{display:block;padding:6px 10px;color:var(--ink2);text-decoration:none;border-radius:6px;border-left:3px solid transparent;transition:.15s;font-weight:500;line-height:1.4}
+.toc a:hover{background:var(--soft-blue);color:var(--blue);border-left-color:var(--blue)}
+.toc a.sub{padding-left:22px;font-size:.8rem;color:var(--muted)}
+article{background:var(--card);border-radius:14px;padding:44px 52px;box-shadow:0 1px 3px rgba(15,27,45,.06),0 8px 30px rgba(15,27,45,.04)}
+h2.chap{font-size:1.7rem;margin:0 0 6px;padding-left:16px;border-left:6px solid var(--blue);line-height:1.3}
+.chapwrap{margin-bottom:54px}
+.chapk{font-size:.78rem;color:var(--blue);font-weight:700;letter-spacing:2px;margin-bottom:8px}
+h3{font-size:1.2rem;color:var(--ink);margin:34px 0 10px;font-weight:700}
+h3 .n{color:var(--blue)}
+h4{font-size:1.02rem;color:var(--ink2);margin:24px 0 8px;font-weight:700}
+p{margin:13px 0}
+strong{color:var(--ink)}
+blockquote{margin:18px 0;padding:16px 20px;background:var(--soft-blue);border-left:4px solid var(--blue);border-radius:0 8px 8px 0;color:var(--ink2)}
+blockquote.warn{background:var(--soft-amber);border-left-color:var(--orange)}
+blockquote.key{background:linear-gradient(135deg,#EAF1FD,#F0F4FF);border-left:5px solid var(--blue);font-size:1.02rem}
+.callout{padding:18px 22px;border-radius:10px;margin:20px 0;background:var(--soft-blue);border:1px solid #cdddf7}
+.callout.r{background:var(--soft-red);border-color:#f3c0c7}
+.callout.g{background:var(--soft-green);border-color:#bfe6cc}
+.callout.a{background:var(--soft-amber);border-color:#f0d8a8}
+.callout h4{margin:0 0 6px}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:.92rem}
+th{background:var(--ink);color:#fff;text-align:left;padding:11px 14px;font-weight:600}
+td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#FAFBFD}
+figure{margin:26px 0;text-align:center}
+figure img{max-width:100%;height:auto;border-radius:10px;border:1px solid var(--line);box-shadow:0 6px 22px rgba(15,27,45,.08)}
+figcaption{font-size:.82rem;color:var(--muted);margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0 6px}
+.stat{background:linear-gradient(160deg,#fff,#f7faff);border:1px solid var(--line);border-radius:12px;padding:16px 14px;text-align:center}
+.stat .v{font-size:1.4rem;font-weight:800;color:var(--blue);line-height:1.1}
+.stat .l{font-size:.76rem;color:var(--muted);margin-top:6px}
+.stat.green .v{color:var(--green)} .stat.red .v{color:var(--red)} .stat.orange .v{color:var(--orange)} .stat.teal .v{color:var(--teal)}
+.force{border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:18px 0;background:#fff}
+.force .fh{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.force .badge{background:var(--blue);color:#fff;font-size:.74rem;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.force.f2 .badge{background:var(--teal)} .force.f3 .badge{background:var(--purple)} .force.f4 .badge{background:var(--orange)} .force.f5 .badge{background:var(--green)}
+.force h4{margin:0;font-size:1.08rem}
+.swot{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.swot div{padding:10px 12px;border-radius:8px;font-size:.86rem}
+.swot .s{background:var(--soft-green);border:1px solid #bfe6cc}
+.swot .w{background:var(--soft-red);border:1px solid #f3c0c7}
+.timeline{position:relative;margin:26px 0;padding-left:24px;border-left:3px solid var(--line)}
+.timeline .t{position:relative;padding:8px 0 18px 18px}
+.timeline .t::before{content:"";position:absolute;left:-32px;top:14px;width:14px;height:14px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 0 0 2px var(--blue)}
+.timeline .t .y{font-weight:700;color:var(--blue)}
+.speedgap{margin:26px 0}
+.speedrow{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;margin-bottom:14px}
+.speedrow .name{font-weight:700;text-align:right;padding-right:6px}
+.speedrow .bar{height:36px;border-radius:8px;display:flex;align-items:center;padding:0 14px;color:#fff;font-weight:600;font-size:.86rem}
+.speedrow .bar .pct{margin-left:auto;opacity:.95}
+.layerbars{margin:18px 0}
+.lrow{display:grid;grid-template-columns:200px 1fr 50px;gap:12px;align-items:center;margin-bottom:8px}
+.lrow .ln{font-size:.84rem;text-align:right;padding-right:4px}
+.lrow .lb{height:26px;border-radius:6px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:.78rem;font-weight:600}
+.lrow .lv{text-align:right;font-weight:700;font-size:.9rem}
+.scenario{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0}
+.scn{border-radius:12px;padding:16px;border:1px solid var(--line)}
+.scn.base{border-top:4px solid var(--blue)} .scn.bull{border-top:4px solid var(--green)} .scn.bear{border-top:4px solid var(--red)}
+.scn h4{margin:0 0 4px} .scn .prob{font-size:.82rem;color:var(--muted);margin-bottom:8px}
+footer{padding:40px 0 60px;color:var(--muted);font-size:.86rem;border-top:1px solid var(--line);margin-top:40px}
+code{background:#eef2f7;padding:1px 5px;border-radius:4px;font-size:.88em}
+@media(max-width:880px){
+  .layout{grid-template-columns:1fr}
+  .toc{position:static;max-height:none}
+  .stats{grid-template-columns:1fr 1fr}
+  .swot{grid-template-columns:1fr}
+  .scenario{grid-template-columns:1fr}
+  .speedrow,.lrow{grid-template-columns:90px 1fr}
+  .lrow .lv{display:none}
+  article{padding:26px 22px}
+  .hero h1{font-size:1.9rem}
+}
+@media print{body{background:#fff}.hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}.toc{display:none}article{box-shadow:none}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <h1>AI 行业发展深度分析报告</h1>
+    <div class="sub">应用场景演进 · 竞争态势 · 资本市场 —— 面向投资与产业决策者的深度分析（2025–2026）</div>
+    <div class="meta">
+      <span>数据时点：2026 年 8 月</span>
+      <span>多源交叉验证</span>
+      <span>Gartner · IDC · IEA · McKinsey · Epoch AI · 公司财报</span>
+      <span>含 13 张图表</span>
+    </div>
+  </div>
+</header>
+<div class="wrap">
+<div class="layout">
+
+<nav class="toc">
+  <h4>目录</h4>
+  <a href="#summary">执行摘要</a>
+  <a href="#ch1">第一章 应用场景</a>
+  <a href="#ch1-3" class="sub">1.3 Work 加速前夜</a>
+  <a href="#ch1-5" class="sub">1.5 渗透阻力</a>
+  <a href="#ch1-6" class="sub">1.6 就业与干预</a>
+  <a href="#ch2">第二章 竞争态势</a>
+  <a href="#ch2-2" class="sub">2.2-2.6 五势力</a>
+  <a href="#ch2-7" class="sub">2.7 价值捕获</a>
+  <a href="#ch3">第三章 资本市场</a>
+  <a href="#ch3-2" class="sub">3.2 算力分层错配</a>
+  <a href="#ch3-3" class="sub">3.3 资金供需</a>
+  <a href="#ch3-5" class="sub">3.5 估值范式风险</a>
+  <a href="#conclusion">结论与展望</a>
+</nav>
+
+<article>
+<section id="summary">
+<h2 class="chap">执行摘要</h2>
+<p>AI 行业正处在一场规模空前、节奏不均的扩张之中。理解这场扩张，需要一个贯穿三主线的统摄性框架：**需求是真实的，但行业仍处早期；而资本投入的速度，跑在了技术落地的速度前面，技术落地的速度，又跑在了人类社会采纳的速度前面。** 这个"三层速度差"既是机会的来源，也是错配与风险的根源。更深层地，如果 AI 的终局是如同水电一般的全人类基础设施——那么当前基于"高科技垄断高利润"假设的估值模型，本身就在积累中长期的系统性风险。本报告把三层速度差作为中短期风险，把估值范式的可能转变作为中长期风险，分层揭示。</p>
+
+<div class="stats">
+  <div class="stat"><div class="v">$416B→$700B</div><div class="l">四大云 capex<br>2025→2026（+68%）</div></div>
+  <div class="stat green"><div class="v">+120%~+1500%</div><div class="l">头部 SaaS 的<br>AI 增量同比增速</div></div>
+  <div class="stat orange"><div class="v">6–10x</div><div class="l">2026 基建投入 vs<br>应用层营收缺口</div></div>
+  <div class="stat red"><div class="v">88% vs 7%</div><div class="l">企业在用 AI vs<br>全企业规模化</div></div>
+</div>
+
+<p><strong>应用场景</strong>已走出聊天机器人阶段。编程是第一个被商业化验证的"现金牛"——Cursor 与 Claude Code 在 2025 年下半年双双冲过年化收入 10 亿美元。但更值得关注的是 2026 年 Work 市场是否进入"加速前夜"。证据是混合的：Palantir 美国商业收入连续多季三位数增长、Salesforce 的 AI ARR 以 +120% 增速破 10 亿美元——AI 增量确实在爆发；但微软 Copilot 付费席位约 1500–2000 万（远低于 4000 万预期）、RAND 显示 80% AI 项目失败——**"AI 强、大盘弱"的分化**说明 Work 渗透仍处早期，且注定是伴随往复的长期过程。</p>
+
+<p><strong>竞争态势</strong>远未到"固化"的程度。基础层（大模型 + 算力）领先优势相对清晰，但规模最大的 Work 市场<strong>竞争才刚开始，谁吃下最大蛋糕为时尚早</strong>。五股势力正在角力：向 Work 入口延伸的模型巨头（Codex 用于编程之外、Anthropic Cowork）；守阵地的传统办公巨头；崛起的 AI 原生 SaaS（Notion）；出海的中国办公云（飞书/钉钉）；以及连接模型与业务流程的集成商（Palantir AIP）。在"入口/模型/云/平台/定制"几层里，谁能捕获最多价值仍高度不确定。</p>
+
+<p><strong>资本市场</strong>是风险最集中之处，且多维度叠加。资金缺口 6–10 倍；算力呈"分层过剩 + 结构性短缺"（旧代 H100 跌 70%、中小 GPU 云利用率 <60% 已过剩，而 Rubin/HBM4 级旗舰推理算力仍结构性短缺）；资金面 Hyperscaler 主要靠经营现金流（与电信泡沫的区别）但 capex 增速已超现金流增速，巨型 IPO 2026 集中释放，日本央行加息边际抬高融资成本。</p>
+
+<blockquote class="key">
+核心论点：<strong>中短期</strong>，三层速度差（资本 &gt; 技术 &gt; 社会采纳）造成的投入—回收时间错配，是主要风险，2026–2027 是验证窗口。<strong>中长期</strong>，若梁文峰"AI 是全人类基础设施"的愿景在开源力量推动下成真，整个产业的估值模型将从"高科技高毛利"滑向"公共事业低毛利"——这是比时间错配更根本的系统性风险。两层风险相互放大。
+</blockquote>
+</section>
+<section id="ch1" class="chapwrap">
+<div class="chapk">第一章</div>
+<h2 class="chap">应用场景的变迁与展望</h2>
+
+<h3><span class="n">1.1</span> 演进脉络：从"能对话"到"能干活"</h3>
+<p>AI 应用的三年演进，本质上是行业追问的焦点从"模型有多聪明"转向"AI 能不能可靠地完成真实工作"。聊天机器人阶段（2022.11–2023）建立认知但难变现；多模态阶段（2024）让 AI 从文本工具变成内容生产力；<strong>Agent 阶段（2025–2026）是最关键的范式跃迁</strong>——推理模型（o1/o3、DeepSeek R1）赋予长程思维链，工具调用让模型能操作外部系统，Agent 框架（LangGraph/CrewAI/Agents SDK）让多步任务工程化。这三块拼图合力，让 Agent 从论文走向生产，催生了编程这一首个大规模变现场景。</p>
+
+<div class="callout">
+<h4>阶段判断</h4>
+到 2026 年中，行业共识已彻底从"模型对话能力有多强"转向"Agent 能否可靠完成真实工作任务"。这不是用词的变化，而是<strong>商业逻辑的跃迁</strong>——对话按字数计价，工作按产出计价，后者的天花板高出一个数量级。
+</div>
+
+<h4 style="margin-top:24px">应用演进时间轴</h4>
+<div class="timeline">
+  <div class="t"><span class="y">2022.11–2023　聊天机器人</span> — ChatGPT / GPT-4，建立认知，但停留在问答层面，商业模式未跑通</div>
+  <div class="t"><span class="y">2024　多模态</span> — GPT-4o 实时语音、Sora/Veo 视频；AI 从文本工具变成内容生产力</div>
+  <div class="t"><span class="y">2025.02–11　Agent + 编程验证</span> — Claude Code / Cursor / Devin 商用；推理模型 + 工具调用 + Agent 框架三拼图到位</div>
+  <div class="t"><span class="y">2026　企业 Work 加速初期</span> — Salesforce Agentforce、Palantir AIP、Cowork/Codex 转知识工作；但 Copilot 席位低于预期</div>
+  <div class="t"><span class="y">2027–2028　专业行业纵深</span> — 医疗 / 法律 / 金融 / 艺术创作走向规模化与合规化</div>
+</div>
+
+<h3><span class="n">1.2</span> 当前主战场：Coding 的大规模应用与验证</h3>
+<p>编程是迄今商业化最快的 AI 应用。Cursor 的 ARR 一年内从约 2 亿增至超 10 亿美元（5 倍），估值升至 293 亿美元；Claude Code 发布仅约 6 个月即达年化收入 10 亿美元。编程验证了一个可复制的范式：<strong>当 Agent 能在标准化、可验证、反馈闭环明确的工作流中落地时，商业化会非常快</strong>——这正是它对 Work 市场的预言价值。</p>
+<p>关于生产力收益，厂商数据高度一致地指向显著提升（GitHub +55%、Cursor +22%、Google DORA +24.9%、JPMorgan +20%、Google 56% 新代码 AI 辅助）。<strong>关键变量从来不是"AI 能不能提效"，而是"人愿不愿意、会不会用"</strong>——采纳曲线的差异源于使用者的经验与学习投入，而非工具能力上限。真正的瓶颈在组织变革与人的能力匹配（见 1.5）。</p>
+
+<figure>
+  <img src="report/assets/chart-coding-arr.png" alt="编程类 AI 产品 ARR 增长">
+  <figcaption>图1　编程类 AI 产品 ARR：Cursor 与 Claude Code 一年内冲过 $10 亿</figcaption>
+</figure>
+
+<h3 id="ch1-3"><span class="n">1.3</span> Work 领域：是加速前夜，还是已加速？</h3>
+<p>Work（企业级商业应用）是 AI 应用最大的潜在市场。一个尖锐的问题：渗透究竟处在加速前夜，还是近半年已有加速证据？需要把头部 SaaS 的最新季度数据拆开看。</p>
+
+<h4>加速的证据：AI 增量在头部厂商中确实爆发</h4>
+<p>Salesforce 的 Agentforce + Data Cloud 合并 ARR 破 10 亿美元（+120%），但总营收增速仍仅 8%——<strong>"AI 强、大盘弱"分化明显</strong>。Palantir 美国商业收入 Q1 +152%、Q2 +178%，美国商业 TCV Q2 同比 +153%、单季签约超 20 亿美元（注：用户曾引用"+6% 客户/+81% TCV"，经核实 +6% 实为全部客户环比，商业客户同比 +42%，+81% 无匹配口径，疑为误引）。Palantir 大单爆发说明<strong>大公司 AI 采用进入新阶段</strong>。模型巨头亲自下场做 Work 入口（Codex 100 万人用于编程之外、Anthropic Cowork 90%+ 用例非编程）本身也是加速信号。</p>
+
+<figure>
+  <img src="report/assets/chart-work-acceleration.png" alt="Work 渗透加速证据">
+  <figcaption>图8　Work 渗透加速证据：AI 增量高增长 vs 大盘低增长（"AI 强、大盘弱"分化）</figcaption>
+</figure>
+
+<h4>减速的证据：规模化远未到齐</h4>
+<p>微软 M365 Copilot 付费席位约 1500–2000 万，远低于 4000 万预期，Gartner 显示仅 6% 组织完成试点规模化、57% 参与度下滑。多家机构惊人一致地指向同一鸿沟：Gartner 预测 30% GenAI 项目 PoC 后被放弃、60% 因数据未就绪失败；RAND 显示 80% AI 项目失败；McKinsey 仅 20–30% 企业把 AI 嵌入核心业务。<strong>88% 试验 vs 7% 规模化——这是 Work 市场最大的结构性现实。</strong></p>
+
+<figure>
+  <img src="report/assets/chart-adoption-gap.png" alt="企业 AI 渗透率">
+  <figcaption>图2　企业 AI 渗透：88% 在用，仅 7% 全企业规模化——"最后一公里墙"</figcaption>
+</figure>
+
+<div class="callout g">
+<h4>综合研判：加速前夜已过、加速初期已至，但非线性</h4>
+Work 渗透处于"加速初期"，但高度分化、注定伴随往复。它不会是平滑 S 曲线，更可能呈波浪式——每波技术进步推升渗透，组织阻力与 ROI 证伪形成回撤。Gartner 预测 2028 年 33% 企业软件含 Agentic AI（2024 不足 1%），但 RPA 的前车之鉴提示路径注定曲折。
+</div>
+
+<h3><span class="n">1.4</span> 专业行业的深入应用</h3>
+<p><strong>艺术创作</strong>：Sora/Midjourney/Runway 在影视/广告规模化采用；Runway ARR 从 7000 万增至超 9000 万美元。<strong>医疗</strong>：FDA 累计批准 1050+ AI/ML 器械；Insilico AI 设计药物进入 II 期临床。<strong>法律</strong>：Harvey AI 估值约 50 亿美元，部署于 PwC 约 20 万员工。<strong>金融</strong>：JPMorgan 科技预算超 170 亿美元，Morgan Stanley 给 1.6 万顾问部署 GPT-4。专业行业壁垒高、变现慢，但一旦突破价值极高且黏性强。</p>
+
+<h3 id="ch1-5"><span class="n">1.5</span> 渗透的过程性与阻力：为什么"最后一公里"最慢</h3>
+<p><strong>最难的从来不是 AI 的能力，而是让组织真正用起来。</strong>阻力来自多个叠加层面：<strong>①组织架构与工作流的巨变</strong>——让 AI 发挥效能需重新设计工作流而非"贴补丁"，涉及部门利益与 KPI 重构；<strong>②人员知识能力的匹配</strong>——AI 工具效用高度依赖使用者能力，渗透速度受限于企业"AI 素养"提升（以年计）；<strong>③数据治理</strong>——Gartner 预测 60% 项目因数据未就绪失败，这是组织治理的欠账；<strong>④ROI 兑现滞后</strong>——Work 场景 ROI 不像编程可即时量化，验证周期长。历史的警示：云计算、ERP、RPA 的采纳都非平滑 S 曲线，Agentic AI 挑战更复杂，渗透更可能呈波浪式。</p>
+
+<h3 id="ch1-6"><span class="n">1.6</span> 就业影响与社会、政府干预的风险</h3>
+<p>渗透加速触及社会性议题——如果处理不当，可能成为减缓甚至逆转渗透的最大变量。Challenger/SHRM 数据显示<strong>2026.03 AI 首次成为美国裁员首要原因（占 25%）</strong>。但 SHRM 的结构性判断相对乐观：20% 岗位有 ≥50% 任务可自动化，但仅 5.1% 高度可自动化且无技术壁垒——<strong>岗位重塑 &gt; 消灭，但阵痛真实且会被政治化</strong>。各国政府已介入：美国偏"加速采纳+再培训"，欧盟靠 AI Act 监管，韩国/法国已现"AI 解雇"争议。本质是：<strong>AI 渗透速度有社会可承受的上限</strong>，过度冲击会触发"社会刹车"。</p>
+
+<figure>
+  <img src="report/assets/chart-employment.png" alt="AI 就业冲击">
+  <figcaption>图11　AI 就业冲击：定向扰动非大规模失业，但会被政治化（社会刹车的根源）</figcaption>
+</figure>
+
+<h3><span class="n">1.7</span> 展望（2026–2028）</h3>
+<p>演进主线清晰：编程（2025）→ 企业 Work（2026–2027，加速但分化）→ 专业行业纵深（2027–2028）。<strong>最值得跟踪的先行指标，不是模型能力提升，而是头部 SaaS 的 AI 增量能否从"高增速小基数"转化为"扭转大盘的增长引擎"——这是 Work 渗透从"前夜"到"黎明"的真正信号。</strong></p>
+</section>
+<section id="ch2" class="chapwrap">
+<div class="chapk">第二章</div>
+<h2 class="chap">下一阶段竞争态势分析</h2>
+
+<h3 id="ch2-1"><span class="n">2.1</span> 一个需要纠正的判断：竞争远未"固化"</h3>
+<p>"竞争格局已分层固化"是一个流行但草率的判断——它只描述了 AI 产业的<strong>基础层</strong>，却让人误以为整个产业竞争都已定型。需要区分两个层次：</p>
+<p><strong>基础层（大模型 + 算力）：领先优势相对清晰。</strong>前沿模型上 OpenAI、Anthropic、Google DeepMind 构成第一梯队，Meta Llama 占据开源事实标准，xAI 凭算力补位。算力层 capex 门槛（四大云 2025 约 $416B→2026 约 $700B）已把中小玩家挡在门外。这一层"领先者优势明显"成立。</p>
+<div class="callout r">
+<h4>但 Work 市场：竞争才刚刚开始</h4>
+真正规模最大、价值最高的 Work 市场，<strong>竞争远未结束，判断谁吃下最大蛋糕为时尚早</strong>。因为 Work 的胜负不取决于"谁的模型最强"，而取决于更复杂的组合：谁拥有工作流入口、谁能把模型深度嵌入业务流程、谁能让企业为 ROI 付费、谁能解决"最后一公里"。这些能力与基础层领先者并不天然重合。至少<strong>五股势力</strong>正在角力，胜负未定。
+</div>
+
+<h3 id="ch2-2"><span class="n">2.2</span> 势力一：模型巨头的 Work 入口布局</h3>
+<p>模型公司正经历战略转向：<strong>从"卖 API"升级为"抢 Work 入口"</strong>。OpenAI Codex 已有 100 万人用于编程之外的知识工作（研究、分析、文档、运营自动化），定位"知识工作执行层"。Anthropic 推出通用职场 Agent <strong>Cowork</strong>（2026.01 预览→04.09 企业版 GA→07 web/mobile），90%+ 用例在编程之外，企业定价 $20/用户/月，客户含 Thomson Reuters、PayPal、PwC。Google Gemini for Workspace 走"嵌入既有办公"路线。</p>
+<p><strong>战略意义</strong>：当模型能力趋同、API 价格战压低毛利时，掌握入口意味着掌握用户关系和数据（Stratechery 称"Agents Over Bubbles"）。<strong>风险</strong>：模型公司擅长技术，但 Work 入口需要企业销售组织与行业 know-how——它们的历史短板。</p>
+
+<h3><span class="n">2.3</span> 势力二：传统办公巨头 Microsoft / Google</h3>
+<div class="force f2">
+<div class="fh"><span class="badge">势力二</span><h4>Microsoft / Google —— 守阵地与被颠覆的张力</h4></div>
+<p><strong>护城河</strong>：Microsoft 365 约 4.3 亿付费席位（绝对主导），Workspace 覆盖更广的中小企业与消费市场。装机量难撼动，迁移成本极高。Microsoft 更有"平台+云+模型"捆绑优势。</p>
+<div class="swot">
+<div class="s"><strong>优势</strong>：既有租户、分发渠道、企业销售组织、数据资产、云捆绑</div>
+<div class="w"><strong>挑战</strong>："AI 贴补丁"局限（产品为非 AI 时代设计）；Copilot 席位低于预期、使用率下滑；AI 原生 SaaS 与中国办公云的双重进攻</div>
+</div>
+</div>
+<p>Gartner 显示仅 6% 组织完成 Copilot 试点到规模化，57% 参与度下滑——把 AI 强行嵌入为非 AI 设计的 Office 工作流，体验难免割裂，给 AI 原生新进入者留下窗口。</p>
+
+<h3><span class="n">2.4</span> 势力三：AI 原生 SaaS（Notion 等）</h3>
+<p>Notion AI 覆盖 62% 财富 100、约 1 亿用户；Linear（工程协作）、Glean（企业搜索+AI）、Dust 等在细分场景构建 AI 原生工作流。<strong>架构优势</strong>：无历史包袱，产品从第一天起为 AI 设计，数据模型统一，Agent 能自然跨功能协作。Glean 尤其解决了企业 AI 最痛的"数据未就绪"问题。威胁是边缘性的，但它们的存在迫使巨头认真对待"AI 原生"范式。</p>
+
+<h3><span class="n">2.5</span> 势力四：中国办公云的海外渗透（飞书、钉钉）</h3>
+<p>飞书（Lark）/钉钉（DingTalk）以"super-app 全栈体验"（IM+文档+会议+审批+HR 一体）进攻，产品功能完整、迭代快、AI 深度嵌入全流程。在出海中企、东南亚、注重性价比的中小企业中有差异化竞争力。但面临三重约束：地缘与数据合规、海外品牌认知弱、本地化支持不足。<strong>更可能聚焦特定细分，而非全面挑战 MS/Google 核心市场</strong>，但其存在增加了竞争复杂度。</p>
+
+<h3 id="ch2-6"><span class="n">2.6</span> 势力五：Palantir 与咨询集成商</h3>
+<div class="force f5">
+<div class="fh"><span class="badge">势力五</span><h4>Palantir AIP + 咨询集成商 ——"最后一公里"的修路者</h4></div>
+<p>Palantir AIP 通过"Bootcamp"模式高效转化（1000+ 组织参与、200+ 进生产），Q2 美国商业收入 $6.96 亿（+178%），商业 TCV 单季签约超 $20 亿。它做<strong>私有环境下的 AI 编排</strong>，不与 Cowork/Copilot 正面竞争，而是把企业分散的数据、系统、业务逻辑与 AI 模型连接成决策闭环。Accenture（GenAI 新签累计约 $30 亿）、BCG（AI 业务超 $10 亿）、McKinsey、IBM 构成"交付网络"，完成组织变革、流程重构、人员培训。</p>
+<p><strong>关键信号</strong>：Palantir 单季 $20 亿 TCV + 咨询商订单爆发，说明<strong>大公司 AI 采用从"试点"进入"规模化部署"</strong>——大公司举动对行业有示范作用，美国市场动向对全世界有指导意义。</p>
+</div>
+
+<figure>
+  <img src="report/assets/chart-ai-market.png" alt="全球 AI 软件市场">
+  <figcaption>图3　全球 AI 软件市场预测（Gartner，十亿美元）——Work 市场的长期 TAM</figcaption>
+</figure>
+<figure>
+  <img src="report/assets/chart-model-arr.png" alt="前沿模型公司 ARR">
+  <figcaption>图4　前沿模型公司 ARR 对比（2025）——基础层领先者</figcaption>
+</figure>
+<figure>
+  <img src="report/assets/chart-capex.png" alt="四大云 capex">
+  <figcaption>图5　四大云 + 专用 AI 云 capex：2025 vs 2026——算力层的进入门槛</figcaption>
+</figure>
+
+<h3 id="ch2-7"><span class="n">2.7</span> 价值捕获分析：入口、模型、云、平台、定制，谁能赢？</h3>
+<p>综合 Sequoia"6000 亿缺口"论、Stratechery"入口捕获价值"论与各投行分析，可梳理出分层的价值捕获框架：</p>
+<ul style="line-height:2">
+<li><strong>短期（2026）：确定性在"云 + 既有办公平台"。</strong>企业 AI 付费先流向已用的云和办公套件。Hyperscaler 既是房东又是租客（"Hyperscaler tax"），短期几乎稳赚。</li>
+<li><strong>中期（2027–2028）：胜负手在"Agent 入口"。</strong>模型商品化（开源+价格战），入口议价权上升。谁让用户工作流"长在"自己的 Agent 上，谁掌握中期价值高地——Codex/Cowork/Copilot/AIP/Notion 都在争夺。</li>
+<li><strong>长期：分层经济决定利润分配。</strong>芯片/稀缺组件（短期最强毛利）&gt; 专有自研硅 &gt; 既有办公平台 &gt; 应用层（厚者强、薄者弱）&gt; <strong>商品云租赁（最易被价格竞争侵蚀）</strong>。</li>
+</ul>
+
+<figure>
+  <img src="report/assets/chart-value-capture.png" alt="价值捕获层级">
+  <figcaption>图10　价值捕获层级：谁能捕获 Work 市场的价值？商品云租赁与薄壳 wrapper 最易被侵蚀</figcaption>
+</figure>
+
+<div class="callout">
+<h4>综合研判：没有单一赢家，但一体化者占优</h4>
+Work 市场不会单一赢家通吃，更可能各层动态博弈。但<strong>"模型+入口+云"一体化的玩家（Microsoft、Google、及补齐云/入口的 OpenAI/Anthropic）占结构性优势</strong>——能内部化多层价值、避免被某一层"卡脖子"。纯模型公司若无入口与云盟友会被挤压；纯办公平台若无强 Agent 会被蚕食；纯集成商只捕获服务费。<strong>能跨越"入口—模型—云—平台—定制"多层、形成闭环的玩家，最可能捕获最大份额</strong>——前提是 Work 渗透能跨越"最后一公里"。
+</div>
+</section>
+<section id="ch3" class="chapwrap">
+<div class="chapk">第三章</div>
+<h2 class="chap">资本市场分析</h2>
+
+<h3><span class="n">3.1</span> 需求是真实的，但行业仍处早期</h3>
+<p><strong>需求真实</strong>：88% 企业在用 AI；OpenAI ARR 从 $60 亿跃升至超 $200 亿；编程一年冲过 $10 亿 ARR——这些是真金白银，不是 PPT 幻觉。但<strong>行业仍处早期</strong>：①盈利模式未跑通（OpenAI 2025 支出 $340 亿）；②推理成本"降了但涨了"的悖论（token 便宜 80–90%，但 Agent 多步调用让单任务算力消耗爆炸）；③杀手级应用仍在形成；④采纳"最后一公里墙"（88% 试验 vs 7% 规模化）。</p>
+
+<h3 id="ch3-2"><span class="n">3.2</span> 算力供需：不是全局过剩或短缺，而是"分层错配"</h3>
+<p>用户的核心关切：假设算力按计划落地，相较需求有没有过剩可能？答案不是简单的"是/否"，而需分层、分时间、分结构来看。</p>
+<h4>需求侧：推理是主导变量</h4>
+<p>训练算力每年 4–5x 增长（Epoch AI）。但决定算力走向的是推理——<strong>推理需求每年约 10x 增长，而推理产能仅约 3x 扩张</strong>。Agent 渗透让单用户 token 消耗远超传统聊天。即便训练算力满足，推理算力需求弹性极大。</p>
+<h4>供给侧：瓶颈不是芯片，是电力</h4>
+<p>全球数据中心用电 2025 约 485 TWh→2030 约 945 TWh（IEA，近翻倍）。核电合作密集（三里岛 835MW、AWS-Talen、Google-Kairos SMR），燃气轮机订单售罄至 2028。<strong>过渡期靠燃气轮机，2030 后靠核电</strong>。电力物理约束意味着有钱也变不成即时产能。</p>
+<figure>
+  <img src="report/assets/chart-power.png" alt="数据中心电力需求">
+  <figcaption>图6　数据中心电力需求：瓶颈不在芯片，在电力（IEA / LBNL）</figcaption>
+</figure>
+
+<h4>核心研判：分层过剩 + 结构性短缺并存</h4>
+<div class="callout r">
+<h4>已经局部过剩（分层过剩）</h4>
+<strong>旧代 Hopper（H100）过剩</strong>——租赁价自峰值 $8/hr 跌至 ~$1.5–2，跌幅超 70%；<strong>中小 GPU 云过剩</strong>——部分 Neocloud 利用率 <60%。消化压力集中在第三方 GPU 云，而非 Hyperscaler 自有产能。
+</div>
+<div class="callout g">
+<h4>仍然结构性短缺</h4>
+<strong>旗舰算力（Blackwell/Rubin/HBM4）短缺</strong>——CoWoS-L 与 HBM4 产能限制；<strong>推理算力结构性短缺</strong>——需求 10x/yr vs 产能 3x/yr（Epoch AI 共识）。
+</div>
+
+<figure>
+  <img src="report/assets/chart-compute-mismatch.png" alt="算力分层错配">
+  <figcaption>图9　算力供需：分层过剩 + 结构性短缺并存（非全局过剩或短缺）</figcaption>
+</figure>
+
+<div class="callout a">
+<h4>关键分歧：2027–2028 是否转向全面过剩？</h4>
+<strong>短缺论</strong>（Epoch AI/SemiAnalysis/Hyperscaler）：推理需求 10x/yr，结构性短缺持续。<strong>过剩论</strong>（Sequoia"1 万亿问题"/Goldman Sachs）：2027+ 是关键过剩窗口，若应用营收不爆发将现产能消化危机。<strong>基准判断</strong>（置信度中）：2026 偏紧→2027 转平衡偏松→2028 视营收兑现而分叉。不是"所有 GPU 变沉没资产"的崩盘，而是<strong>"回报分化"</strong>——高杠杆 Neocloud 与老 H100 持有者最暴露，Hyperscaler 较稳。
+</div>
+
+<h3 id="ch3-3"><span class="n">3.3</span> 资金供给与需求深挖：钱从哪来，会不会断？</h3>
+<h4>Hyperscaler 融资：靠经营现金流，而非发债</h4>
+<p>与 2000 年电信泡沫的关键区别：四大 Hyperscaler 主要靠<strong>经营性现金流</strong>融资 capex，发债占比低（Microsoft AAA、Alphabet 现金超 $1000 亿）。但<strong>隐忧浮现</strong>——capex 增速（约 50%/yr）已超经营现金流增速（约 15–20%/yr），若 AI 收入兑现滞后，发债依赖与杠杆率将抬头。</p>
+<figure>
+  <img src="report/assets/chart-capex-vs-ocf.png" alt="capex vs 经营现金流增速">
+  <figcaption>图13　capex 增速 > 经营现金流增速：发债依赖的隐患（与电信泡沫的区别在于巨头自身造血）</figcaption>
+</figure>
+
+<h4>巨型 IPO：2026 集中释放的资金压力</h4>
+<p>CoreWeave（2025.3 IPO，首日破发）、Klarna 已上市。待上市巨型管线：OpenAI（私募估值约 $5000 亿，若 IPO 可能募资超 $1000 亿）、Databricks（~$620 亿）、Anthropic（~$600 亿+）、xAI、Stripe（~$700 亿+）。若集中释放，公开市场需消化数百亿至上千亿新股。<strong>估值倒挂风险</strong>：私募晚期估值若无法被公募承接，将引发"私募→公募估值重置"并向下传导。</p>
+
+<h4>传统资金源变迁：日本回流与全球流动性</h4>
+<p>日本资金是全球资本重要供给方。两个因素边际改变其海外配置：<strong>①BoJ 货币正常化</strong>（2025.12 利率升至 ~0.75%，缩表）；<strong>②日元套息交易平仓风险</strong>（2024.8.5"黑色星期一"已预演）。"回流"是渐进的、配置驱动的，非断崖式——GPIF 战略配置稳定，主要是寿险公司削减对冲外债。但传导链真实存在：<strong>BoJ 加息 → 日本资金边际回流 → 全球长端利率上行 → capex 融资成本边际上升</strong>。叠加中东主权基金（长期耐心资本但集中于头部）、加拿大养老基金（偏好数据中心基础设施），资金供给侧整体充裕但<strong>边际成本上升、结构分化</strong>。尾部风险：若 BoJ 加息快于预期，流动性收缩冲击 AI 高估值资产。</p>
+
+<figure>
+  <img src="report/assets/chart-funding-gap.png" alt="资金缺口">
+  <figcaption>图7　2026 年 AI 基建投入 vs 应用层营收：缺口 6–10 倍（Sequoia"1 万亿问题"）</figcaption>
+</figure>
+
+<h3><span class="n">3.4</span> 错配规模的量化</h3>
+<table>
+<tr><th>错配类型</th><th>表现</th><th>规模估计</th><th>置信度</th></tr>
+<tr><td>算力时间错配</td><td>2026 偏紧、2027 局部过剩、2028 分叉</td><td>H100 跌 70%；旗舰仍短缺</td><td>中-高</td></tr>
+<tr><td>算力结构错配</td><td>训练 vs 推理、旗舰 vs 旧代</td><td>推理需求 10x/yr vs 产能 3x/yr</td><td>中-高</td></tr>
+<tr><td>投入—回收错配</td><td>capex $700–800B vs 营收 $80–120B</td><td>缺口 6–10x</td><td>中</td></tr>
+<tr><td>估值错配</td><td>私募晚期估值 vs 公募承接</td><td>OpenAI ~$500B 私募</td><td>中</td></tr>
+<tr><td>采纳速度错配</td><td>88% 试验 vs 7% 规模化</td><td>"最后一公里墙"</td><td>高</td></tr>
+<tr><td>资金结构错配</td><td>头部融资充裕、中尾部变难</td><td>中早期估值中位数回落</td><td>中</td></tr>
+</table>
+
+<h3 id="ch3-5"><span class="n">3.5</span> 终极风险：从"三层速度差"到"估值范式的转变"</h3>
+<h4>中短期风险：三层速度差造成的时间错配</h4>
+<div class="speedgap">
+  <div class="speedrow">
+    <div class="name" style="color:var(--red)">资本投入<br><small style="font-weight:400;color:var(--muted)">最快</small></div>
+    <div class="bar" style="background:linear-gradient(90deg,#D7263D,#e85a6e);width:100%"><span>capex 季度级决策，提前透支 3–5 年需求</span><span class="pct">+68%/yr</span></div>
+  </div>
+  <div class="speedrow">
+    <div class="name" style="color:var(--orange)">技术发展<br><small style="font-weight:400;color:var(--muted)">次之</small></div>
+    <div class="bar" style="background:linear-gradient(90deg,#E8833A,#f0a868);width:60%"><span>算力投产受电力/审批/封装（年级物理约束）</span><span class="pct">模型半年一代</span></div>
+  </div>
+  <div class="speedrow">
+    <div class="name" style="color:var(--blue)">社会采纳<br><small style="font-weight:400;color:var(--muted)">最慢</small></div>
+    <div class="bar" style="background:linear-gradient(90deg,#2E6BE6,#5a8dec);width:20%"><span>组织变革/治理/人才/合规+社会刹车</span><span class="pct">7% 规模化</span></div>
+  </div>
+</div>
+<p>剪刀差越大，断链风险越高。2026–2027 是验证"预支逻辑"能否成立的关键窗口。</p>
+
+<h4>中长期风险：AI"基础设施化"对估值范式的颠覆</h4>
+<p>据公开媒体报道，DeepSeek 创始人梁文峰阐述了一个清晰理念：<strong>AI 不应由少数公司垄断，应像水电一样成为普惠基础设施</strong>。DeepSeek 践行这一理念——开源与自身部署能力相近的模型、以架构效率实现低成本、定价不为利润最大化。这一理念并非 DeepSeek 独有：Meta Llama、阿里 Qwen 共同构成全球开源阵营，结构性压低闭源 API 价格。</p>
+<p><strong>如果这个愿景成真，估值模型会怎样变？</strong>当前 AI 估值隐含"高科技=高毛利=高增长=高估值"假设。但若 AI 逐步"基础设施化"——模型商品化、算力公共事业化——估值将从"高科技高毛利"滑向"公共事业低毛利"。这不需要"AI 杀死资本主义"的宏大叙事，温和但致命的版本是：模型层商品化、算力层公共事业化，只有入口与应用层保持高毛利。今天估值最乐观的基建层与模型层公司，面临最大重估压力。</p>
+<figure>
+  <img src="report/assets/chart-valuation-paradigm.png" alt="估值范式转变">
+  <figcaption>图12　中长期风险：AI 估值范式从"高科技高毛利"滑向"公共事业低毛利"</figcaption>
+</figure>
+<div class="callout r">
+<h4>两层风险的叠加效应（最大系统性尾部风险）</h4>
+中短期"时间错配"（capex 过度预支）若导致 2027–2028 算力过剩与营收证伪，会<strong>加速</strong>模型与算力商品化，把"中长期估值范式转变"<strong>提前触发</strong>。反过来，若市场提前 price in"基础设施化"，中短期融资环境会更快收紧。<strong>这两层风险的正反馈，是 AI 资本市场最大的系统性尾部风险。</strong>但有缓和力量：价值正向"入口+应用+数据"转移，前沿能力仍稀缺，监管可能巩固 incumbent——所以更准确的判断是<strong>"价值向少数能跨越多层、形成闭环的玩家集中，而纯基建/纯模型玩家面临最大重估压力"</strong>。
+</div>
+</section>
+<section id="conclusion" class="chapwrap">
+<div class="chapk">结论与展望</div>
+<h2 class="chap">综合判断与情景推演</h2>
+
+<p>AI 行业的需求是真实的、巨大的，正从编程向企业 Work 和专业行业纵深推进。但扩张节奏极度不均，呈现清晰的"三层速度差"：资本以创纪录速度涌入，技术投产受电力等物理瓶颈以年推进，社会采纳卡在"最后一公里墙"（7% 规模化）。竞争上，基础层领先清晰但 Work 市场五势力混战未定。资本市场风险最集中：算力"分层过剩+结构性短缺"并存，资金缺口 6–10x，且面临 IPO 集中释放、日本资金回流等边际压力。更深层，若 AI 走向"基础设施化"，估值范式面临中长期系统性重估。</p>
+
+<h3>情景推演（2026–2028）</h3>
+<div class="scenario">
+  <div class="scn base">
+    <h4>基准情景</h4>
+    <div class="prob">概率约 50%</div>
+    <p>Work/编程规模化兑现，ROI 中性偏正。应用营收 2028 ~$300–400 亿；算力 2027 转松、2028 紧平衡；估值高位震荡、分化加剧。价值向入口与应用层集中。</p>
+  </div>
+  <div class="scn bull">
+    <h4>乐观情景</h4>
+    <div class="prob">概率约 20%</div>
+    <p>杀手级 Agent/专业行业突破，ROI 强正。应用营收 2028 &gt;$500 亿；算力持续紧；估值再上台阶。</p>
+  </div>
+  <div class="scn bear">
+    <h4>悲观情景</h4>
+    <div class="prob">概率约 30%</div>
+    <p>ROI 证伪 + 估值范式转变预期 + 融资收紧。应用营收 2028 &lt;$200 亿；算力 2027 过剩明显；估值大幅回调，基建/模型层重估，中短期与中长期风险正反馈。</p>
+  </div>
+</div>
+
+<h3>关键观察指标</h3>
+<ul style="line-height:2">
+<li><strong>头部 SaaS 的 AI 增量能否扭转大盘增速</strong>——Work 渗透从"前夜"到"黎明"的真正信号</li>
+<li><strong>Palantir 等大客户大单的持续性</strong>——大公司 AI 采用的领先指标</li>
+<li><strong>OpenAI/Anthropic 季度 ARR 增速与盈利路径</strong>——应用层营收兑现与模型层盈利能力</li>
+<li><strong>GPU 租赁价格走势（H200/Blackwell）</strong>——算力过剩/短缺的实时温度计</li>
+<li><strong>巨型 IPO（OpenAI 等）的估值与节奏</strong>——私募→公募估值重置风险</li>
+<li><strong>核电/电力审批进度</strong>——算力供给物理上限</li>
+<li><strong>BoJ 货币政策与套息交易</strong>——全球流动性尾部风险</li>
+<li><strong>"DeepSeek 时刻"式效率冲击 + 开源对 API 价格压制</strong>——估值范式转变的催化剂</li>
+</ul>
+
+<h3>给决策者的三点启示</h3>
+<p><strong>应用层</strong>：编程已验证，企业 Work 是 2026–2027 主战场，但务必用独立验证评估 ROI；采纳"最后一公里墙"是最大约束，赢家是能解决组织变革与数据治理的玩家；关注 Work 入口之争的胜负手。</p>
+<p><strong>基础设施层</strong>：capex 是护城河也是风险源；算力"分层过剩+结构性短缺"，需对冲旧代过剩与高杠杆风险；电力是真正稀缺资源；警惕中长期"基础设施化"对纯基建/纯模型公司估值范式的重估压力。</p>
+<p><strong>资本配置</strong>：中短期警惕三层速度差导致的投入—回收缺口（2026–2027 验证窗口）；中长期警惕估值范式从"高科技高毛利"向"公共事业低毛利"的转变；优先关注能跨越"入口—模型—云—平台—定制"多层、形成闭环的玩家。</p>
+</section>
+
+</article>
+</div>
+
+<footer>
+<div class="wrap">
+<p><strong>数据来源与方法</strong>：本报告数据来自近一年（2025–2026 年中）公开来源，经多源交叉验证——机构预测（Gartner、IDC、IEA、LBNL、Epoch AI、Forrester、McKinsey、Bloomberg Intelligence）、分析师（Goldman Sachs、Morgan Stanley、UBS、Sequoia、Stratechery）、专业媒体（Reuters、FT、Bloomberg、CNBC、The Information、TechCrunch）、公司财报与投资者关系（Microsoft、Alphabet、Amazon、Meta、OpenAI、Anthropic、Salesforce、ServiceNow、Palantir、CoreWeave、Notion 等）。</p>
+<p>冲突数据（如四大云 capex 的财年/自然年口径、Anthropic 估值口径、Palantir 增速口径）已在配套综合分析文档标注解决方式。梁文峰相关论述引自公开媒体报道，引用时已标注"据报道"。完整来源清单见 <code>write/research/</code> 目录下六份研究素材。</p>
+<p style="margin-top:16px;color:#9aa5b5">© 2026　AI 行业深度分析报告　·　本研究仅供分析参考，不构成投资建议</p>
+</div>
+</footer>
+
+</div>
+</body>
+</html>
