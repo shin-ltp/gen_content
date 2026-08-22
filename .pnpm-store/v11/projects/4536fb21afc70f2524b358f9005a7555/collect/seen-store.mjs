@@ -1,18 +1,22 @@
 // seen-store.mjs — 跨天跨信源的已抓取文章履历（去重用）
 import fs from 'node:fs';
 import path from 'node:path';
+import { safeReadJson, atomicWrite } from './collect-utils.mjs';
 const PROJECT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\//,'')), '..', '..');
 const DB_DIR = path.join(PROJECT, 'db');
 const DB_FILE = path.join(DB_DIR, 'seen-articles.json');
+const SIG = 'seen-v2';
 function load() {
-  try { if (fs.existsSync(DB_FILE)) return JSON.parse(fs.readFileSync(DB_FILE, 'utf8')); } catch (e) { console.error('[seen-store] load failed: ' + e.message); }
-  return { _meta: { total: 0, updated: '' }, articles: {} };
+  const { value, needWrite } = safeReadJson(DB_FILE,
+    { _meta: { total: 0, updated: '' }, articles: {} }, SIG);
+  if (needWrite) save(value);
+  return value;
 }
 function save(store) {
   fs.mkdirSync(DB_DIR, { recursive: true });
   store._meta.total = Object.keys(store.articles).length;
   store._meta.updated = new Date().toISOString();
-  fs.writeFileSync(DB_FILE, JSON.stringify(store, null, 2), 'utf8');
+  atomicWrite(DB_FILE, JSON.stringify(store, null, 2), SIG);
 }
 function key(source, id) { return source + '-' + id; }
 function has(store, source, id) { return Object.prototype.hasOwnProperty.call(store.articles, key(source, id)); }

@@ -1,0 +1,44 @@
+{
+  "source": "voxcpm_voice_design",
+  "source_file": "02_design_news.wav",
+  "created": "2026-06-22",
+  "duration_sec": 7.73,
+  "sample_rate": 44100,
+  "ref_text": "こんにちは。本日は、世界経済の最新動向について 分かりやすく解説していきます。",
+  "voice_design": {
+    "model": "openbmb/VoxCPM2",
+    "control_instruction": "若い女性、声は澄んでいて甘く柔らかい、芯のある透き通る響き、感情を抑えた落ち着いたトーン",
+    "cfg_value": 2.0,
+    "inference_timesteps": 20
+  },
+  "volume_normalize": {
+    "reference": "refs/kyoujyu/ref_audio.wav",
+    "method": "mean_volume_match + peak_limiter",
+    "gain_db": 19.9,
+    "target_mean_db": -13.5,
+    "target_max_db": -0.4
+  },
+  "post_edit": {
+    "date": "2026-06-22",
+    "pause_halve": [
+      {
+        "position": "after こんにちは。",
+        "original_sec": 0.82,
+        "edited_sec": 0.41
+      },
+      {
+        "position": "after 本日は、",
+        "original_sec": 0.46,
+        "edited_sec": 0.23
+      },
+      {
+        "position": "after 最新動向について",
+        "original_sec": 0.41,
+        "edited_sec": 0.21
+      }
+    ],
+    "speed_factor": 1.05,
+    "duration_before_edit_sec": 8.96,
+    "duration_after_edit_sec": 7.73
+  }
+}

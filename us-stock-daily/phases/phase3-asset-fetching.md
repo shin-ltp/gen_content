@@ -2,9 +2,14 @@
 
 > 旧 PLAN.md 第四章 Phase 3。状態: 🚧 補完（骨子）。ロゴキャッシュは [../infra/brand-asset-cache.md](../infra/brand-asset-cache.md)、DB層は [../infra/database-layer.md](../infra/database-layer.md)、視覚仕様は [../spec/vision-design.md](../spec/vision-design.md)。
 
-- **入力**: `adopted=true` かつ `assets_status≠fetched` の素材（`url` と `assets_needed` を読む）
+- **入力**: ①各ドラフト末尾の **シーン表**（必要アセットの正式な一覧。`logo:nvidia` 形式）＋
+  ②`adopted=true` かつ `assets_status≠fetched` の素材（frontmatter の `assets_needed` を読む）
 - **出力**: `assets/{screenshots,charts,logos}/...`（各日）＋ `assets/brands/`（共有キャッシュ）
 - **動作**: 採用された素材から**必要な画像だけ**クロール取得。取得後 `assets_status=fetched` に更新。
+
+> シーン表と frontmatter の `assets_needed` が不一致の場合は **シーン表を優先** し、不一致を
+> `status.md` のメモに記録する。概念図・色ブロック・段階リストは Stage S2 が自作するため取得対象外。
+> 取得対象はロゴ・スクリーンショット・写真のみ。
 
 ---
 

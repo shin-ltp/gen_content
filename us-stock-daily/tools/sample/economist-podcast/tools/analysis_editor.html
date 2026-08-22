@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analysis Editor</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f2f5;--card:#fff;--border:#dde1e6;--text:#1d1d1f;--text2:#6e6e73;
+  --accent:#0071e3;--accent-light:#e8f0fe;--danger:#ff3b30;--success:#34c759;
+  --shadow:0 1px 3px rgba(0,0,0,.08);--radius:8px;
+}
+html{font-size:14px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden}
+
+/* ── Header ── */
+header{background:#fff;border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0;position:relative;z-index:100}
+header h1{font-size:1.1rem;font-weight:700;white-space:nowrap}
+.summary-bar{display:flex;gap:10px;font-size:.8rem;color:var(--text2);white-space:nowrap;align-items:center;flex:1}
+.summary-bar .stat{background:var(--bg);padding:3px 10px;border-radius:12px;font-weight:600}
+.btn{padding:6px 16px;border:none;border-radius:var(--radius);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn:disabled{opacity:.4;cursor:default}
+.btn-save{background:var(--accent);color:#fff}
+.btn-save:hover:not(:disabled){background:#005bb5}
+.btn-confirm{background:var(--success);color:#fff}
+.btn-confirm:hover:not(:disabled){background:#248a3d}
+.header-btns{display:flex;gap:8px;flex-shrink:0}
+.status-msg{font-size:.8rem;color:var(--success);font-weight:600;margin-right:4px;display:none}
+
+/* ── Board ── */
+#app{display:flex;flex-direction:column;height:100vh}
+#board{display:flex;gap:16px;padding:12px 16px;flex:1;overflow:hidden}
+.column{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.column-header{padding:12px 16px;font-size:.95rem;font-weight:700;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0}
+.column-header .count-badge{background:var(--bg);padding:2px 10px;border-radius:12px;font-size:.8rem;font-weight:600;color:var(--text2)}
+.drop-header{border-left:4px solid var(--danger)}
+.keep-header{border-left:4px solid var(--success)}
+.article-list{padding:8px;overflow-y:auto;flex:1}
+
+/* ── Article Card ── */
+.article-card{background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:8px;transition:box-shadow .15s;position:relative}
+.article-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:4px}
+.card-title{font-size:.85rem;font-weight:600;line-height:1.35;flex:1}
+.card-badges{display:flex;gap:4px;align-items:center;flex-shrink:0}
+.card-id{font-size:.7rem;color:var(--text2);background:var(--bg);padding:1px 6px;border-radius:8px;white-space:nowrap}
+.card-section{font-size:.72rem;margin-bottom:4px;font-weight:600}
+.card-summary{font-size:.75rem;color:var(--text2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px}
+.card-footer{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.score-badge{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.score-1{background:#fee2e2;color:#b91c1c}
+.score-2{background:#ffedd5;color:#c2410c}
+.score-3{background:#fef9c3;color:#a16207}
+.score-4{background:#dbeafe;color:#1d4ed8}
+.score-5{background:#f3f4f6;color:#6b7280}
+.toggle-btn{padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:.75rem;font-weight:600;transition:all .15s;white-space:nowrap}
+.toggle-btn.to-drop{color:var(--danger);border-color:var(--danger)}
+.toggle-btn.to-drop:hover{background:#fff1f0}
+.toggle-btn.to-keep{color:var(--success);border-color:var(--success)}
+.toggle-btn.to-keep:hover{background:#f0fff4}
+
+/* ── Section colors ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#999}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Analysis Editor</h1>
+    <div id="summaryBar" class="summary-bar"></div>
+    <span id="statusMsg" class="status-msg"></span>
+    <div class="header-btns">
+      <button id="saveBtn" class="btn btn-save">保存</button>
+      <button id="confirmBtn" class="btn btn-confirm">確認</button>
+    </div>
+  </header>
+  <div id="board">
+    <div class="column">
+      <div class="column-header drop-header">除外記事 (DROP) <span id="dropCount" class="count-badge">0</span></div>
+      <div class="article-list" id="dropList"></div>
+    </div>
+    <div class="column">
+      <div class="column-header keep-header">採用記事 (KEEP) <span id="keepCount" class="count-badge">0</span></div>
+      <div class="article-list" id="keepList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SECTION_COLORS = {};
+const COLOR_PALETTE = [
+  '#0071e3','#34c759','#ff9500','#af52de','#ff3b30','#5ac8fa',
+  '#ff2d55','#ffcc00','#64d2ff','#30b0c7','#ac8e68','#8e8e93',
+  '#007aff','#28cd41','#ff6482','#bf5af2','#a2845e','#5856d6',
+];
+let colorIdx = 0;
+
+let articles = [];
+let isDirty = false;
+
+function sectionColor(name) {
+  if (!SECTION_COLORS[name]) {
+    SECTION_COLORS[name] = COLOR_PALETTE[colorIdx % COLOR_PALETTE.length];
+    colorIdx++;
+  }
+  return SECTION_COLORS[name];
+}
+
+function hexToRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+/* ── Data loading ── */
+async function loadData() {
+  try {
+    const resp = await fetch('/api/analysis');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    articles = await resp.json();
+    render();
+  } catch (e) {
+    document.getElementById('board').innerHTML =
+      `<div style="text-align:center;color:#ff3b30;margin:80px auto;font-size:1rem">
+         analysis.json の読み込みに失敗しました: ${e.message}
+       </div>`;
+  }
+}
+
+/* ── Render ── */
+function render() {
+  const dropList = document.getElementById('dropList');
+  const keepList = document.getElementById('keepList');
+  dropList.innerHTML = '';
+  keepList.innerHTML = '';
+
+  const dropped = articles.filter(a => a.status !== 'KEEP');
+  const kept = articles.filter(a => a.status === 'KEEP');
+
+  dropped.sort((a, b) => a.relevance_score - b.relevance_score);
+  kept.sort((a, b) => a.relevance_score - b.relevance_score);
+
+  dropped.forEach(a => dropList.appendChild(createCard(a, false)));
+  kept.forEach(a => keepList.appendChild(createCard(a, true)));
+
+  document.getElementById('dropCount').textContent = dropped.length;
+  document.getElementById('keepCount').textContent = kept.length;
+  updateSummary();
+}
+
+function createCard(article, isKeep) {
+  const card = document.createElement('div');
+  card.className = 'article-card';
+
+  const sc = article.relevance_score || 3;
+  const secColor = sectionColor(article.section || '');
+
+  const toggleClass = isKeep ? 'to-drop' : 'to-keep';
+  const toggleLabel = isKeep ? '← 除外' : '採用 →';
+
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-title">${article.japanese_title || article.original_title || '(no title)'}</div>
+      <div class="card-badges">
+        <span class="card-id">ID:${article.id}</span>
+      </div>
+    </div>
+    <div class="card-section" style="color:${secColor}">${article.section || ''}</div>
+    <div class="card-summary">${article.summary_ja || ''}</div>
+    <div class="card-footer">
+      <span class="score-badge score-${sc}" title="relevance_score（1=最重要〜5=低）">関心度 ${sc}</span>
+      <button class="toggle-btn ${toggleClass}" data-id="${article.id}">${toggleLabel}</button>
+    </div>`;
+
+  card.querySelector('.toggle-btn').addEventListener('click', () => {
+    toggleArticle(article.id);
+  });
+
+  return card;
+}
+
+function toggleArticle(id) {
+  const article = articles.find(a => a.id === id);
+  if (!article) return;
+  article.status = article.status === 'KEEP' ? 'DROP' : 'KEEP';
+  isDirty = true;
+  render();
+}
+
+/* ── Summary ── */
+function updateSummary() {
+  const bar = document.getElementById('summaryBar');
+  const total = articles.length;
+  const kept = articles.filter(a => a.status === 'KEEP').length;
+  const dropped = total - kept;
+
+  const sections = new Set(articles.map(a => a.section));
+
+  bar.innerHTML = `
+    <span class="stat">${total} 篇</span>
+    <span class="stat">KEEP: ${kept}</span>
+    <span class="stat">DROP: ${dropped}</span>
+    <span class="stat">${sections.size} セクション</span>`;
+}
+
+/* ── Save / Confirm ── */
+async function save() {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+  try {
+    const resp = await fetch('/api/analysis', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(articles),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    isDirty = false;
+    showStatus('保存しました');
+  } catch (e) {
+    alert('保存に失敗しました: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '保存';
+  }
+}
+
+async function confirm() {
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled = true;
+  btn.textContent = '確認中...';
+  try {
+    const resp = await fetch('/api/analysis/confirm', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(articles),
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    isDirty = false;
+    btn.textContent = '確認済み ✓';
+    showStatus('確認しました。次のステップに進みます...');
+  } catch (e) {
+    alert('確認に失敗しました: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '確認';
+  }
+}
+
+function showStatus(msg) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg;
+  el.style.display = 'inline';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+document.getElementById('saveBtn').addEventListener('click', save);
+document.getElementById('confirmBtn').addEventListener('click', confirm);
+
+/* ── Keyboard ── */
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    save();
+  }
+});
+
+/* ── Unsaved changes warning ── */
+window.addEventListener('beforeunload', e => {
+  if (isDirty) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+/* ── Init ── */
+loadData();
+</script>
+</body>
+</html>

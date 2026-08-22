@@ -1,0 +1,420 @@
+﻿﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Assets 米国株投資 — ビジュアルテンプレート v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@500;700&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-deep:#0B1426; --navy-mid:#152238; --navy-light:#1E3150;
+  --offwhite:#F8F5EE; --cream:#F0EBE0;
+  --red:#E53935; --green:#43A047; --amber:#FFB300; --gold:#D4AF37;
+  --text-dark:#1A1A2E; --text-mid:#4A4A5A; --text-light:#8A8A9A;
+  --green-block:#E8F5E9; --pink-block:#FCE4EC;
+  --source-green:#4CAF50;
+  --slide-width:1920px; --slide-height:1080px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(--text-dark);overflow-x:hidden}
+
+/* Preview UI (not part of broadcast frame) */
+.nav-bar{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(11,20,38,.96);backdrop-filter:blur(10px);padding:10px 18px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(255,255,255,.12)}
+.nav-bar .logo{font-family:'Inter',sans-serif;font-weight:700;font-size:14px;color:var(--amber);white-space:nowrap}
+.nav-bar .nav-links{display:flex;gap:6px;flex-wrap:wrap}
+.nav-bar button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.75);padding:6px 12px;border-radius:6px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;white-space:nowrap}
+.nav-bar button:hover{background:rgba(255,255,255,.16);color:#fff}
+.nav-bar button.active{background:var(--amber);color:var(--navy-deep);border-color:var(--amber);font-weight:700}
+.slide-container{margin-top:58px;padding:28px;display:flex;flex-direction:column;align-items:center;gap:48px}
+.slide{width:var(--slide-width);height:var(--slide-height);position:relative;overflow:hidden;box-shadow:0 18px 55px rgba(0,0,0,.5);border-radius:4px;transform-origin:top center}
+.slide-label{position:absolute;top:-32px;left:0;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase}
+
+/* L1 Opening */
+.slide-opening{background:linear-gradient(135deg,var(--navy-deep) 0%,#0D1B30 45%,var(--navy-mid) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.slide-opening::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 18% 45%,rgba(255,179,0,.07) 0%,transparent 50%),radial-gradient(ellipse at 82% 25%,rgba(67,160,71,.05) 0%,transparent 50%)}
+.slide-opening .channel-logo{position:absolute;top:52px;left:64px;display:flex;align-items:center;gap:16px;z-index:1}
+.slide-opening .logo-mark{width:68px;height:68px;background:linear-gradient(135deg,var(--amber),#FF8F00);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:900;font-size:28px;color:var(--navy-deep)}
+.slide-opening .logo-text{font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:rgba(255,255,255,.92)}
+.slide-opening .logo-text span{display:block;font-size:15px;font-weight:400;color:rgba(255,255,255,.55);margin-top:4px;letter-spacing:1px}
+.slide-opening .title-area{text-align:center;z-index:1}
+.slide-opening .date-badge{display:inline-block;background:rgba(255,179,0,.16);border:1px solid rgba(255,179,0,.35);color:var(--amber);padding:10px 30px;border-radius:28px;font-size:22px;font-weight:600;letter-spacing:1px;margin-bottom:30px}
+.slide-opening .main-title{font-weight:900;font-size:92px;color:#fff;line-height:1.18}
+.slide-opening .main-title .accent{color:var(--amber)}
+.slide-opening .subtitle{font-size:30px;color:rgba(255,255,255,.68);margin-top:24px}
+.slide-opening .host-area{position:absolute;bottom:52px;right:64px;display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);padding:14px 26px;border-radius:14px;z-index:1}
+.slide-opening .host-avatar{width:58px;height:58px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:rgba(255,255,255,.45);letter-spacing:1px}
+.slide-opening .host-name{font-size:20px;font-weight:700;color:rgba(255,255,255,.92)}
+.slide-opening .host-role{font-size:15px;color:rgba(255,255,255,.55);margin-top:2px}
+
+/* L1b Haiku */
+.slide-haiku{background:var(--navy-deep);display:flex;align-items:center;justify-content:center;position:relative}
+.slide-haiku::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(212,175,55,.08) 0%,transparent 55%)}
+.slide-haiku .haiku-text{font-family:'Noto Serif JP',serif;font-weight:500;font-size:78px;color:var(--gold);line-height:1.9;letter-spacing:10px;text-align:center;z-index:1}
+.slide-haiku .haiku-annotation{margin-top:42px;font-size:22px;color:rgba(255,255,255,.45);text-align:center}
+
+/* L2 Market */
+.slide-market{background:var(--offwhite);padding:44px 56px;display:flex;flex-direction:column;gap:18px}
+.slide-market .header-bar{display:flex;align-items:baseline;justify-content:space-between}
+.slide-market .section-title{font-weight:900;font-size:44px}
+.slide-market .date-label{font-family:'Inter',sans-serif;font-size:21px;color:var(--text-light)}
+.slide-market .index-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.slide-market .index-card{background:#fff;border-radius:10px;padding:20px 24px;border:1px solid rgba(0,0,0,.07);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.slide-market .index-name{font-family:'Inter',sans-serif;font-size:21px;font-weight:600;color:var(--text-mid);margin-bottom:4px}
+.slide-market .index-value{font-family:'JetBrains Mono',monospace;font-size:54px;font-weight:600;color:var(--text-dark)}
+.slide-market .index-change{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;margin-top:2px}
+.slide-market .up{color:var(--green)}
+.slide-market .down{color:var(--red)}
+.slide-market .sector-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.slide-market .sector-block{border-radius:10px;padding:18px 24px}
+.slide-market .sector-block.gainers{background:var(--green-block);border:1px solid rgba(67,160,71,.22)}
+.slide-market .sector-block.losers{background:var(--pink-block);border:1px solid rgba(229,57,53,.22)}
+.slide-market .block-header{font-weight:900;font-size:25px;margin-bottom:8px}
+.slide-market .gainers .block-header{color:var(--green)}
+.slide-market .losers .block-header{color:var(--red)}
+.slide-market .sector-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.05);font-size:25px}
+.slide-market .sector-item:last-child{border-bottom:none}
+.slide-market .sector-item .value{font-family:'JetBrains Mono',monospace;font-weight:700}
+.slide-market .gainers .sector-item .value{color:var(--green)}
+.slide-market .losers .sector-item .value{color:var(--red)}
+.slide-market .other-markets{background:var(--navy-deep);border-radius:10px;padding:16px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.slide-market .market-name{font-size:21px;color:rgba(255,255,255,.62);font-weight:500;margin-right:10px}
+.slide-market .market-value{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700}
+.slide-market .key-points{background:#fff;border-radius:10px;padding:16px 26px;border-left:6px solid var(--amber)}
+.slide-market .points-title{font-weight:900;font-size:25px;margin-bottom:6px}
+.slide-market .key-points ul{list-style:none;font-size:25px;color:var(--text-mid);line-height:1.65}
+.slide-market .key-points li::before{content:'▸ ';color:var(--amber);font-weight:900}
+
+/* L3 Highlights */
+.slide-highlights{background:var(--offwhite);padding:52px 64px;display:flex;gap:44px}
+.slide-highlights .left-panel{width:360px;display:flex;flex-direction:column;gap:14px;justify-content:center}
+.slide-highlights .topic-image{width:100%;aspect-ratio:1;background:linear-gradient(135deg,var(--navy-light),var(--navy-mid));border-radius:14px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.32);font-size:20px;letter-spacing:2px}
+.slide-highlights .topic-label{font-size:17px;color:var(--text-light);text-align:center}
+.slide-highlights .right-panel{flex:1;display:flex;flex-direction:column;justify-content:center}
+.slide-highlights .section-header{font-weight:900;font-size:48px;margin-bottom:26px;padding-bottom:14px;border-bottom:5px solid var(--amber)}
+.slide-highlights .topic-list{display:flex;flex-direction:column;gap:14px}
+.slide-highlights .topic-item{display:flex;align-items:center;gap:22px;padding:22px 26px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,.07)}
+.slide-highlights .topic-item.active{background:linear-gradient(135deg,rgba(255,179,0,.14),rgba(255,179,0,.05));border-color:var(--amber);box-shadow:0 4px 18px rgba(255,179,0,.18)}
+.slide-highlights .topic-number{width:52px;height:52px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:var(--text-mid);flex-shrink:0}
+.slide-highlights .topic-item.active .topic-number{background:var(--amber);color:var(--navy-deep)}
+.slide-highlights .topic-title{font-size:33px;font-weight:600;line-height:1.35}
+.slide-highlights .topic-item.dimmed{opacity:.42}
+
+/* L4 Deep analysis (split) */
+.slide-analysis{background:var(--navy-deep);display:flex;position:relative}
+.slide-analysis::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 28% 50%,rgba(30,49,80,.55) 0%,transparent 60%)}
+.slide-analysis .left-visual{width:38%;padding:56px;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1}
+.slide-analysis .brand-image{width:100%;max-width:420px;aspect-ratio:1;background:linear-gradient(135deg,var(--navy-mid),var(--navy-light));border-radius:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12)}
+.slide-analysis .brand-image .placeholder{font-size:19px;color:rgba(255,255,255,.35);letter-spacing:2px}
+.slide-analysis .visual-source{margin-top:22px;font-size:19px;color:var(--source-green);font-weight:500;text-align:center}
+.slide-analysis .right-content{width:62%;padding:56px 64px 56px 0;display:flex;flex-direction:column;justify-content:center;z-index:1}
+.slide-analysis .analysis-source{font-size:20px;color:var(--source-green);font-weight:700;letter-spacing:.5px;margin-bottom:12px}
+.slide-analysis .analysis-title{font-weight:700;font-size:54px;color:var(--amber);line-height:1.25;margin-bottom:28px}
+.slide-analysis .data-list{display:flex;flex-direction:column;gap:18px}
+.slide-analysis .data-item{display:flex;align-items:baseline;gap:20px}
+.slide-analysis .data-key{font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:700;color:var(--red);min-width:230px;flex-shrink:0}
+.slide-analysis .data-key.green{color:var(--green)}
+.slide-analysis .data-desc{font-size:27px;color:rgba(255,255,255,.84);line-height:1.5}
+.slide-analysis .conclusion-box{margin-top:32px;background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.35);border-radius:10px;padding:20px 26px}
+.slide-analysis .conclusion-label{font-size:19px;font-weight:900;color:var(--red);letter-spacing:2px;margin-bottom:6px}
+.slide-analysis .conclusion-text{font-size:28px;color:#fff;font-weight:500;line-height:1.5}
+.slide-analysis .signature{position:absolute;bottom:34px;right:64px;font-size:18px;color:rgba(255,255,255,.42);font-style:italic}
+
+/* L4b Deep analysis (fullscreen + chart) */
+.slide-analysis-full{background:var(--navy-deep);padding:44px 60px;display:flex;flex-direction:column;position:relative}
+.slide-analysis-full::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 20%,rgba(30,49,80,.5) 0%,transparent 55%);pointer-events:none}
+.slide-analysis-full .full-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;border-bottom:2px solid rgba(255,255,255,.16);padding-bottom:14px;z-index:1}
+.slide-analysis-full .analysis-source{font-size:20px;color:var(--source-green);font-weight:700;margin-bottom:6px}
+.slide-analysis-full .analysis-title{font-weight:700;font-size:46px;color:var(--amber);line-height:1.25}
+.slide-analysis-full .head-badge{font-family:'JetBrains Mono',monospace;font-size:20px;color:rgba(255,255,255,.55);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);padding:8px 16px;border-radius:8px;white-space:nowrap}
+.slide-analysis-full .full-body{flex:1;display:flex;gap:22px;margin-top:22px;min-height:0;z-index:1}
+.chart-frame{flex:1;position:relative;border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .25s,border-color .25s;overflow:hidden}
+.chart-frame .chart-placeholder{font-size:25px;text-align:center;line-height:1.7;transition:color .25s}
+.chart-frame .chart-sub{display:block;font-size:18px;margin-top:10px;opacity:.75}
+.chart-frame .chart-tag{position:absolute;top:14px;right:14px;font-family:'JetBrains Mono',monospace;font-size:16px;padding:6px 12px;border-radius:6px;border:1px solid}
+.chart-frame.theme-light{background:#FFFFFF;border:1px solid rgba(0,0,0,.08);box-shadow:0 16px 48px rgba(0,0,0,.38)}
+.chart-frame.theme-light .chart-placeholder{color:#4A4A5A}
+.chart-frame.theme-light .chart-tag{color:#2E7D32;background:#E8F5E9;border-color:rgba(46,125,50,.4)}
+.chart-frame.theme-dark{background:rgba(21,34,56,.5);border:1px dashed rgba(255,255,255,.32)}
+.chart-frame.theme-dark .chart-placeholder{color:rgba(255,255,255,.62)}
+.chart-frame.theme-dark .chart-tag{color:var(--amber);background:rgba(255,179,0,.12);border-color:rgba(255,179,0,.45)}
+.slide-analysis-full .full-notes{width:470px;display:flex;flex-direction:column;gap:16px;justify-content:center}
+.slide-analysis-full .stat-card{background:rgba(255,255,255,.06);border-left:5px solid var(--red);border-radius:10px;padding:18px 22px}
+.slide-analysis-full .stat-card.green{border-left-color:var(--green)}
+.slide-analysis-full .stat-label{font-size:20px;color:rgba(255,255,255,.6);margin-bottom:4px}
+.slide-analysis-full .stat-value{font-family:'JetBrains Mono',monospace;font-size:46px;font-weight:700;color:#fff;line-height:1.15}
+.slide-analysis-full .stat-value .up{color:var(--green)}
+.slide-analysis-full .stat-value .down{color:var(--red)}
+.slide-analysis-full .stat-desc{font-size:20px;color:rgba(255,255,255,.68);margin-top:6px;line-height:1.45}
+.slide-analysis-full .usage-note{margin-top:16px;font-size:17px;color:rgba(255,255,255,.45);line-height:1.6}
+
+/* L5 News */
+.slide-news{background:var(--offwhite);padding:44px 56px;display:flex;flex-direction:column}
+.slide-news .news-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.slide-news .section-title{font-weight:900;font-size:44px}
+.slide-news .date-badge{background:var(--navy-deep);color:#fff;padding:8px 18px;border-radius:8px;font-family:'Inter',sans-serif;font-size:18px;font-weight:600}
+.slide-news .news-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1}
+.slide-news .news-item{display:flex;align-items:center;gap:18px;padding:18px 22px;background:#fff;border-radius:10px;border:1px solid rgba(0,0,0,.07)}
+.slide-news .news-item.active{background:linear-gradient(135deg,rgba(255,179,0,.16),rgba(255,179,0,.05));border-color:var(--amber);box-shadow:0 4px 14px rgba(255,179,0,.14)}
+.slide-news .news-number{width:42px;height:42px;border-radius:9px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:20px;color:var(--text-mid);flex-shrink:0}
+.slide-news .news-item.active .news-number{background:var(--amber);color:var(--navy-deep)}
+.slide-news .news-title{font-size:25px;font-weight:500;line-height:1.4}
+.slide-news .news-item.dimmed{opacity:.38}
+
+/* L6 Disclaimer */
+.slide-disclaimer{background:#F0EDE6;display:flex;align-items:center;justify-content:center;padding:64px}
+.slide-disclaimer .disclaimer-content{max-width:1420px;text-align:center}
+.slide-disclaimer .disclaimer-title{font-weight:900;font-size:38px;margin-bottom:26px}
+.slide-disclaimer .disclaimer-text{font-size:28px;color:var(--text-mid);line-height:1.95}
+.slide-disclaimer .channel-footer{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:40px;padding-top:28px;border-top:1px solid rgba(0,0,0,.09)}
+.slide-disclaimer .footer-logo{width:42px;height:42px;background:var(--amber);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:900;font-size:18px;color:var(--navy-deep)}
+.slide-disclaimer .footer-text{font-size:23px;color:var(--text-light);font-weight:500}
+
+/* Palette */
+.color-palette{width:var(--slide-width);background:#fff;border-radius:10px;padding:32px;box-shadow:0 10px 40px rgba(0,0,0,.3);transform-origin:top center}
+.color-palette h3{font-size:22px;margin-bottom:18px}
+.color-swatches{display:flex;gap:14px;flex-wrap:wrap}
+.color-swatch{display:flex;flex-direction:column;align-items:center;gap:6px}
+.color-swatch .swatch-box{width:72px;height:72px;border-radius:10px;border:1px solid rgba(0,0,0,.1)}
+.color-swatch .swatch-label{font-size:12px;color:var(--text-mid);text-align:center}
+.color-swatch .swatch-hex{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-light)}
+</style>
+</head>
+<body>
+<div class="nav-bar">
+  <div class="logo">SMART ASSETS 米国株投資</div>
+  <div class="nav-links">
+    <button class="active" onclick="scrollToSlide(0)">L1 オープニング</button>
+    <button onclick="scrollToSlide(1)">L1b 俳句</button>
+    <button onclick="scrollToSlide(2)">L2 市場速報</button>
+    <button onclick="scrollToSlide(3)">L3 目玉予告</button>
+    <button onclick="scrollToSlide(4)">L4 深層分析</button>
+    <button onclick="scrollToSlide(5)">L4b 全画面分析</button>
+    <button onclick="scrollToSlide(6)">L5 ニュース</button>
+    <button onclick="scrollToSlide(7)">L6 免責</button>
+  </div>
+</div>
+
+<div class="slide-container">
+
+<div class="slide slide-opening" id="slide-0">
+  <div class="slide-label">Layout 1 — Opening title card</div>
+  <div class="channel-logo">
+    <div class="logo-mark">SA</div>
+    <div class="logo-text">Smart Assets<span>米国株投資</span></div>
+  </div>
+  <div class="title-area">
+    <div class="date-badge">2026年8月20日（水）</div>
+    <h1 class="main-title">米国株式<span class="accent">デイリー</span><br>深層分析</h1>
+    <p class="subtitle">今日の市場を、データと洞察で読み解く</p>
+  </div>
+  <div class="host-area">
+    <div class="host-avatar">HOST</div>
+    <div>
+      <div class="host-name">ホスト名（未定）</div>
+      <div class="host-role">アナリスト</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide slide-haiku" id="slide-1">
+  <div class="slide-label">Layout 1b — Opening haiku</div>
+  <div>
+    <div class="haiku-text">秋風や<br>金利の波に<br>葉が舞う</div>
+    <div class="haiku-annotation">— 本日の市場を一句で —</div>
+  </div>
+</div>
+
+<div class="slide slide-market" id="slide-2">
+  <div class="slide-label">Layout 2 — Market overview card</div>
+  <div class="header-bar">
+    <div class="section-title">前日市況の総括</div>
+    <div class="date-label">2026年8月19日（火）米国市場</div>
+  </div>
+  <div class="index-cards">
+    <div class="index-card"><div class="index-name">S&amp;P 500</div><div class="index-value">6,449.80</div><div class="index-change up">+0.25% ▲</div></div>
+    <div class="index-card"><div class="index-name">NASDAQ</div><div class="index-value">21,622.98</div><div class="index-change up">+0.42% ▲</div></div>
+    <div class="index-card"><div class="index-name">DOW JONES</div><div class="index-value">44,946.12</div><div class="index-change down">-0.18% ▼</div></div>
+  </div>
+  <div class="sector-row">
+    <div class="sector-block gainers">
+      <div class="block-header">▲ 値上がりセクター</div>
+      <div class="sector-item"><span>情報技術 (XLK)</span><span class="value">+1.24%</span></div>
+      <div class="sector-item"><span>通信サービス (XLC)</span><span class="value">+0.87%</span></div>
+      <div class="sector-item"><span>一般消費 (XLY)</span><span class="value">+0.65%</span></div>
+    </div>
+    <div class="sector-block losers">
+      <div class="block-header">▼ 値下がりセクター</div>
+      <div class="sector-item"><span>公益 (XLU)</span><span class="value">-1.05%</span></div>
+      <div class="sector-item"><span>不動産 (XLRE)</span><span class="value">-0.78%</span></div>
+      <div class="sector-item"><span>素材 (XLB)</span><span class="value">-0.52%</span></div>
+    </div>
+  </div>
+  <div class="other-markets">
+    <div><span class="market-name">BTC/USD</span><span class="market-value up">$118,420 +2.1%</span></div>
+    <div><span class="market-name">金</span><span class="market-value up">$3,382 +0.4%</span></div>
+    <div><span class="market-name">WTI原油</span><span class="market-value down">$62.58 -1.2%</span></div>
+    <div><span class="market-name">米10年債</span><span class="market-value up">4.28% +2bp</span></div>
+    <div><span class="market-name">USD/JPY</span><span class="market-value down">147.82 -0.3%</span></div>
+  </div>
+  <div class="key-points">
+    <div class="points-title">本日の要点</div>
+    <ul>
+      <li>AI関連株が好調、NVIDIAが最高値更新</li>
+      <li>FRB議事録でハト派発言が優勢、9月利下げ観測が後退</li>
+    </ul>
+  </div>
+</div>
+
+<div class="slide slide-highlights" id="slide-3">
+  <div class="slide-label">Layout 3 — Today's topics</div>
+  <div class="left-panel">
+    <div class="topic-image">THEME IMAGE</div>
+    <div class="topic-label">テーマ画像エリア（ロゴ・決算資料など）</div>
+  </div>
+  <div class="right-panel">
+    <div class="section-header">本日の目玉</div>
+    <div class="topic-list">
+      <div class="topic-item dimmed"><div class="topic-number">1</div><div class="topic-title">NVIDIA最高値 — AIバブル論に終止符？</div></div>
+      <div class="topic-item active"><div class="topic-number">2</div><div class="topic-title">FRB議事録解読：9月利下げの行方</div></div>
+      <div class="topic-item dimmed"><div class="topic-number">3</div><div class="topic-title">Anthropic ARR 600億ドル — AI商用化の真実</div></div>
+      <div class="topic-item dimmed"><div class="topic-number">4</div><div class="topic-title">ビットコインに買いシグナル点灯？</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide slide-analysis" id="slide-4">
+  <div class="slide-label">Layout 4 — Deep analysis (split)</div>
+  <div class="left-visual">
+    <div class="brand-image"><div class="placeholder">BRAND / THEME</div></div>
+    <div class="visual-source">情報源: Bloomberg / Goldman Sachs</div>
+  </div>
+  <div class="right-content">
+    <div class="analysis-source">マクロ深掘り · FRB政策分析</div>
+    <div class="analysis-title">FRBは本当に<br>利下げに動けるか？</div>
+    <div class="data-list">
+      <div class="data-item"><div class="data-key">4.28%</div><div class="data-desc">米10年国債利回り — 市場は「Higher for Longer」を織り込み</div></div>
+      <div class="data-item"><div class="data-key green">62%</div><div class="data-desc">CME FedWatch — 9月据え置き確率（1週間前: 45%）</div></div>
+      <div class="data-item"><div class="data-key">3.5%</div><div class="data-desc">コアPCE（前年比）— FRB目標2%を依然大きく上回る</div></div>
+    </div>
+    <div class="conclusion-box">
+      <div class="conclusion-label">◆ 個人の見解</div>
+      <div class="conclusion-text">9月利下げは困難。市場は12月まで据え置きを前提にポジションを組むべき。</div>
+    </div>
+  </div>
+  <div class="signature">—— Smart Assets 見解</div>
+</div>
+
+<div class="slide slide-analysis-full" id="slide-5">
+  <div class="slide-label">Layout 4b — Deep analysis (fullscreen chart)</div>
+  <div class="full-head">
+    <div>
+      <div class="analysis-source">マクロ深掘り · FRB政策分析</div>
+      <div class="analysis-title">政策金利先物が描く「利下げシナリオ」</div>
+    </div>
+    <div class="head-badge">SOURCE: CME FedWatch</div>
+  </div>
+  <div class="full-body">
+    <div class="chart-frame theme-light" id="demo-chart" onclick="toggleChartTheme()">
+      <div class="chart-tag">CHART BG: LIGHT → 白カード表示</div>
+      <div class="chart-placeholder">
+        外部チャート表示エリア（TradingView / 決算資料 など）
+        <span class="chart-sub">クリックで LIGHT / DARK 背景の切替デモ</span>
+      </div>
+    </div>
+    <div class="full-notes">
+      <div class="stat-card">
+        <div class="stat-label">米10年国債利回り</div>
+        <div class="stat-value">4.28<span class="up">%</span></div>
+        <div class="stat-desc">市場は「Higher for Longer」を織り込み</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-label">9月据え置き確率</div>
+        <div class="stat-value">62<span class="up">%</span></div>
+        <div class="stat-desc">1週間前は45%、ハト派期待が後退</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">コアPCE（前年比）</div>
+        <div class="stat-value">3.5<span class="down">%</span></div>
+        <div class="stat-desc">FRB目標2%を依然大きく上回る</div>
+      </div>
+      <div class="usage-note">※ 収録パイプラインではチャート元の背景色を判定し、LIGHT=白カード / DARK=紺背景へ直接統合を自動選択。</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide slide-news" id="slide-6">
+  <div class="slide-label">Layout 5 — News highlights</div>
+  <div class="news-header">
+    <div class="section-title">News Highlights</div>
+    <div class="date-badge">2026.08.20</div>
+  </div>
+  <div class="news-grid">
+    <div class="news-item dimmed"><div class="news-number">1</div><div class="news-title">NVIDIA、次世代GPU「Blackwell Ultra」の量産開始を発表</div></div>
+    <div class="news-item active"><div class="news-number">2</div><div class="news-title">FRB議事録：複数の委員がインフレリスクを警告</div></div>
+    <div class="news-item dimmed"><div class="news-number">3</div><div class="news-title">Anthropic、ARR 600億ドルを突破 — AI商用化加速</div></div>
+    <div class="news-item dimmed"><div class="news-number">4</div><div class="news-title">ビットコインETF、週間資金流入が過去最大を記録</div></div>
+    <div class="news-item dimmed"><div class="news-number">5</div><div class="news-title">米中協議、半導体輸出規制で合意に至らず</div></div>
+    <div class="news-item dimmed"><div class="news-number">6</div><div class="news-title">Apple、Vision Pro 2の開発を正式に確認</div></div>
+    <div class="news-item dimmed"><div class="news-number">7</div><div class="news-title">WTI原油、OPEC+増産観測で62ドル台に下落</div></div>
+    <div class="news-item dimmed"><div class="news-number">8</div><div class="news-title">Goldman Sachs、S&amp;P 500年末目標を6,800に引き上げ</div></div>
+  </div>
+</div>
+
+<div class="slide slide-disclaimer" id="slide-7">
+  <div class="slide-label">Layout 6 — Disclaimer</div>
+  <div class="disclaimer-content">
+    <div class="disclaimer-title">免責事項</div>
+    <div class="disclaimer-text">本番組の全内容は学習と考え方の共有のみを目的としており、<br>直接的な売買推奨を構成するものではありません。<br>投資にはリスクが伴います。ご自身のポジション管理を適切に行い、<br>独立した投資判断を行ってください。</div>
+    <div class="channel-footer">
+      <div class="footer-logo">SA</div>
+      <div class="footer-text">Smart Assets 米国株投資</div>
+    </div>
+  </div>
+</div>
+
+<div class="color-palette">
+  <h3>カラーパレット — Smart Assets 米国株投資</h3>
+  <div class="color-swatches">
+    <div class="color-swatch"><div class="swatch-box" style="background:#0B1426"></div><div class="swatch-label">濃紺（分析背景）</div><div class="swatch-hex">#0B1426</div></div>
+    <div class="color-swatch"><div class="swatch-box" style="background:#152238"></div><div class="swatch-label">中濃紺</div><div class="swatch-hex">#152238</div></div>
+    <div class="color-swatch"><div class="swatch-box" style="background:#F8F5EE"></div><div class="swatch-label">オフホワイト</div><div class="swatch-hex">#F8F5EE</div></div>
+    <div class="color-swatch"><div class="swatch-box" style="background:#E53935"></div><div class="swatch-label">赤（下落・警告）</div><div class="swatch-hex">#E53935</div></div>
+    <div class="color-swatch"><div class="swatch-box" style="background:#43A047"></div><div class="swatch-label">緑（上昇）</div><div class="swatch-hex">#43A047</div></div>
+    <div class="color-swatch"><div class="swatch-box" style="background:#FFB300"></div><div class="swatch-label">琥珀（強調）</div><div class="swatch-hex">#FFB300</div></div>
+    <div class="color-swatch"><div class="swatch-box" style="background:#D4AF37"></div><div class="swatch-label">金（俳句）</div><div class="swatch-hex">#D4AF37</div></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+function scrollToSlide(i){
+  document.getElementById('slide-'+i).scrollIntoView({behavior:'smooth',block:'center'});
+  document.querySelectorAll('.nav-links button').forEach((b,j)=>b.classList.toggle('active',j===i));
+}
+function setChartTheme(frame,isLight){
+  frame.classList.toggle('theme-light',isLight);
+  frame.classList.toggle('theme-dark',!isLight);
+  frame.querySelector('.chart-tag').textContent=isLight?'CHART BG: LIGHT → 白カード表示':'CHART BG: DARK → 紺背景へ統合';
+}
+function toggleChartTheme(){
+  var f=document.getElementById('demo-chart');
+  setChartTheme(f,f.classList.contains('theme-dark'));
+}
+function scaleSlides(){
+  var pad=36;
+  var availW=Math.max(window.innerWidth-pad*2,320);
+  var s=Math.min(availW/1920,0.82);
+  document.querySelectorAll('.slide,.color-palette').forEach(function(el){
+    el.style.scale=s;
+    var h=el.offsetHeight||1080;
+    el.style.marginBottom=-(h*(1-s))+'px';
+  });
+}
+window.addEventListener('resize',scaleSlides);
+scaleSlides();
+</script>
+</body>
+</html>

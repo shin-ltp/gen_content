@@ -8,11 +8,10 @@ import { createRequire } from 'node:module';
 const _require = createRequire('C:/Users/RW250701/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/');
 const { chromium } = _require('playwright');
 import { load as loadSeen, save as saveSeen, has as seenHas, add as seenAdd } from './seen-store.mjs';
-import { frontmatter, stripHtml } from './collect-utils.mjs';
+import { frontmatter, stripHtml, UA_HEADERS, atomicWrite } from './collect-utils.mjs';
 
 const OUT = process.env.INSIGHTS_OUT || './out';
 fs.mkdirSync(OUT, { recursive: true });
-const UA = { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36', 'Accept': 'text/html,application/xhtml+xml', 'Accept-Language': 'en-US,en;q=0.9' };
 
 
 
@@ -46,7 +45,7 @@ async function collectGS(seen) {
   const today = new Date().toISOString().slice(0, 10);
   let n = 0;
   try {
-    const r = await fetch('https://www.goldmansachs.com/insights', { headers: UA, signal: AbortSignal.timeout(15000) });
+    const r = await fetch('https://www.goldmansachs.com/insights', { headers: UA_HEADERS, signal: AbortSignal.timeout(15000) });
     if (!r.ok) { console.error('[insights] GS HTTP ' + r.status); return 0; }
     const html = await r.text();
     const linkRe = /<a[^>]+href="(\/insights\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
@@ -67,7 +66,7 @@ async function collectGS(seen) {
     for (const it of unique.slice(0, 10)) {
       let body = '';
       try {
-        const ar = await fetch(it.url, { headers: UA, signal: AbortSignal.timeout(12000) });
+        const ar = await fetch(it.url, { headers: UA_HEADERS, signal: AbortSignal.timeout(12000) });
         if (ar.ok) {
           const ahtml = await ar.text();
           const paras = [...ahtml.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi)].map(x => stripHtml(x[1])).filter(p => p.length > 30);
@@ -84,7 +83,7 @@ async function collectGS(seen) {
         assets_needed: '[]', assets_status: 'none', adopted: false, status: 'raw'
       };
       const md = frontmatter(meta) + '\n\n## Body\n\n' + (body || '(body not retrieved)') + '\n';
-      fs.writeFileSync(path.join(OUT, meta.id + '.md'), md, 'utf8');
+      atomicWrite(path.join(OUT, meta.id + '.md'), md);
       seenAdd(seen, 'gs-insights', it.id, { title: it.title.slice(0, 80), body_chars: body.length });
       n++;
       console.log('[GS] [' + n + '] ' + it.title.slice(0, 50) + ' (' + body.length + ' chars)');
@@ -171,7 +170,7 @@ async function collectMS(browser, seen) {
         assets_needed: '[]', assets_status: 'none', adopted: false, status: 'raw'
       };
       const md = frontmatter(meta) + '\n\n## Body\n\n' + body.slice(0, 6000) + '\n';
-      fs.writeFileSync(path.join(OUT, meta.id + '.md'), md, 'utf8');
+      atomicWrite(path.join(OUT, meta.id + '.md'), md);
       seenAdd(seen, 'ms-insights', id, { title: it.text.slice(0, 80), body_chars: body.length, topic: it.topic });
       n++;
       console.log('[MS] [' + n + '] ' + it.text.slice(0, 50) + ' (' + body.length + ' chars) [' + it.topic + ']');
@@ -260,7 +259,7 @@ async function collectJPM(browser, seen) {
         assets_needed: '[]', assets_status: 'none', adopted: false, status: 'raw'
       };
       const md = frontmatter(meta) + '\n\n## Body\n\n' + body.slice(0, 6000) + '\n';
-      fs.writeFileSync(path.join(OUT, meta.id + '.md'), md, 'utf8');
+      atomicWrite(path.join(OUT, meta.id + '.md'), md);
       seenAdd(seen, 'jpm-insights', id, { title: it.title.slice(0, 80), body_chars: body.length });
       n++;
       console.log('[JPM] [' + n + '] ' + it.title.slice(0, 50) + ' (' + body.length + ' chars)');
@@ -276,13 +275,30 @@ async function run() {
   console.log('[insights] GS/MS/JPM start');
   const gsN = await collectGS(seen);
   let msN = 0, jpmN = 0;
-  const browser = await createStealthBrowser();
+  let browser = null;
   try {
+    browser = await createStealthBrowser();
     try { msN = await collectMS(browser, seen); } catch (e) { console.error('[insights] MS outer error: ' + e.message); }
     try { jpmN = await collectJPM(browser, seen); } catch (e) { console.error('[insights] JPM outer error: ' + e.message); }
-  } finally { await browser.close(); }
-  saveSeen(seen);
+  } finally { if (browser) { try { await browser.close(); } catch {} } }
+  try { saveSeen(seen); } catch (e) { console.error('[insights] seen 保存失敗: ' + e.message); }
   const total = gsN + msN + jpmN;
   console.log('\n=== insights: GS=' + gsN + ' MS=' + msN + ' JPM=' + jpmN + ' total=' + total + ' -> ' + OUT + ' ===');
+  if (total === 0) {
+    // 当日分の素材が既に存在する場合は、一時的なネット/反爬不調でも整体 FAIL にしない
+    const today = new Date().toISOString().slice(0, 10);
+    const dayPrefix = 'RES-' + today.replace(/-/g, '');
+    let existing = 0;
+    try {
+      existing = fs.existsSync(OUT)
+        ? fs.readdirSync(OUT).filter(f => f.startsWith(dayPrefix) && f.endsWith('.md')).length
+        : 0;
+    } catch {}
+    if (existing > 0) {
+      console.log('[insights] 本日分 ' + existing + ' 件は収集済みのため成功扱い（今回 0 新規）');
+      process.exit(0);
+    }
+    process.exit(1);
+  }
 }
 run().catch(e => { console.error('FATAL: ' + e.message); process.exit(1); });
