@@ -22,19 +22,34 @@
 | **単独表示**（1社/1媒体をクローズアップ） | **本社大楼や标志性建築物など、社名・媒体名が入った実写写真** | リアリティ・説得力を高める。B の個別株深層分析等 |
 | **多品牌列挙**（一覧・比較・出所羅列） | **シンプルなロゴ**（背景透過 PNG／SVG） | 視認性・統一感。A.②目玉予告・Cニュース速報・セクター一覧等 |
 
-### 取得フロー（両方ともキャッシュ優先）
+### 取得フロー（実写写真ファースト・2026-08-23 改訂）
+
+> **設計原則**: メインビジュアルにロゴを据えない。単独クローズアップは**実写建築写真**、人物の論点は**本人・報道写真**、抽象論は**文生图**（[../spec/vision-design.md §0.8](../spec/vision-design.md)）。ロゴは補助のみ。
 
 ```
-画像が必要になった時（種別 = logo または building）:
+画像が必要になった時（種別 = building | person | logo | concept）:
 1. assets/brands/{companies,media}/<slug>[-hq].<ext> の存在確認
    - あり → 再利用（キャッシュ命中）★
    - なし → 手順2へ
-2. 検索・ダウンロード
-   - logo（列挙用）: 公式IR／プレスキット／ブランドアセット → Wikipedia → ロゴ検索（背景透過PNG/SVG優先）
-   - building（単独用）: 公式IR／ニュースルームの高解像度本社・施設写真 → Wikipedia（企業記事のインフォボックス画像）→ 画像検索（「{社名} headquarters」「{社名} 本社」）。社名・媒体名が写り込んだ标志性建築物を優先
-3. 所定パスへ保存 → manifest.md に1行追記（種別 logo/building を明記）
+2. 検索・ダウンロード（優先順）
+   - building（単独用・最優先）: 公式IR／ニュースルームの高解像度本社・施設写真 → Wikipedia（企業記事のインフォボックス画像）→ SearXNG 画像検索（「{社名} headquarters」「{社名} 本社」）。社名・媒体名が写り込んだ标志性建築物を優先
+   - person（人物の論点用）: 当該発言に紐づく報道記事の写真（会見・イベント）→ 本人の高解像度ポートレート（Wikipedia → SearXNG 画像検索）
+   - logo（列挙用・補助のみ）: 公式ブランドアセット → Wikipedia → ロゴ検索（背景透過PNG/SVG優先）
+   - concept（抽象概念）: tools/imagegen（qwen-image-3.0-pro）で生成。ロゴや写真で表現できない論理構造を可視化
+3. 所定パスへ保存 → manifest.md に1行追記（種別 building/person/logo/concept を明記）
 4. 保存したファイルを使用
 ```
+
+### 検索レイヤの優先順（429 対策・2026-08-23 追加）
+
+外部サービスのレート制限（429）に当たった場合の検索レイヤ：
+
+1. **SearXNG 自部署**（`tools/searxng/search.ps1`）を最優先で使用する。画像検索は `-Categories images`、例:
+   ```powershell
+   .\tools\searxng\search.ps1 "NVIDIA headquarters building" -Categories images -TimeRange "" -Raw
+   ```
+2. Wikimedia Commons API（画像ファイルが確実に存在する既知ブランド用）
+3. 組み込み `web_search` は最後のフォールバック
 
 > 命名：ロゴは `<slug>.png`（例 `nvda.png`）。本社実写は `<slug>-hq.jpg`（例 `nvda-hq.jpg`）。詳細は [brand-asset-cache.md §3](../infra/brand-asset-cache.md)。
 >

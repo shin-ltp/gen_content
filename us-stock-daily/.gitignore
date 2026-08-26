@@ -21,3 +21,6 @@ db/
 # Gmail 浏览器持久化 profile（含 cookies/session）
 tools/collect/.gmail-profile/
 tools/collect/out/
+# 文生図ツールの実行時産物
+tools/imagegen/__pycache__/
+tools/imagegen/out/

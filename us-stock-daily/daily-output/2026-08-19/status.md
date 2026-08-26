@@ -18,7 +18,7 @@
 | 0 情報収集 | ✅done | collector | — | 2026-08-19T04:41 | PASS(#0) | 素材147件 |
 | 1 テーマ選定 | ✅done | triage | 2026-08-19 | 2026-08-19 | PASS(#1) | `production/outline.md` |
 | 2 スクリプト | ✅done | scriptwriter | 2026-08-19 | 2026-08-19 | 自己点検PASS(#2) | draft-A/B/C/D 完成。正式検査は Phase 4 |
-| 3 視覚素材 | ⏳wip | asset-fetcher | 2026-08-19 | — | — | シーン表トリガ受付（logo 10種） |
+| 3 視覚素材 | ✅done | asset-fetcher | 2026-08-19 | 2026-08-23 | 自己点検PASS(#3) | 写真ファースト改訂版。下記サマリー参照 |
 | 4 品質検査 | ⬜todo | — | — | — | — | — |
 | 5 統合 | ⬜todo | — | — | — | — | — |
 
@@ -63,3 +63,21 @@
 ## Gate #0 独立再評価（ファイルシステム実体）
 
 - [x] 独立再評価 (verify-collection): PASS
+
+## Phase 3 完了サマリー（2026-08-23 完了）
+
+- 設計原則改訂（2026-08-23）: メインビジュアルにロゴを据えない「実写写真ファースト」を適用（`spec/vision-design.md` §0.8）。シーン表の `logo:*` トリガに対し、単独表示は本社実写写真、人物論点は本人写真、抽象概念は文生图で対応。ロゴは補助要素として保持。
+- 本社実写写真 12点（`assets/photos/`・brandsキャッシュ `assets/brands/companies/` にも保管）: nvidia/apple/microsoft/hd/tsmc/meta/berkshire/federal-reserve/target/walmart/anthropic/coreweave（出所: Wikimedia Commons / SearXNG画像検索、`_sources.log` 参照）
+- 人物写真 2点（`assets/people/`）: jim-cramer.jpg（CNBC公式CDN）／ben-thompson.jpg（Stratechery公式ポートレート）
+- 文生图概念図 5点（`assets/concepts/`・qwen-image-3.0-pro・1600x900）: opening-visual／discount-rate／bubble-history／capital-curve／k-shaped-consumption
+- ロゴ 9点（補助・`assets/brands/companies/`）: nvidia/aapl/microsoft/tsmc/meta/brk/federal-reserve/anthropic/cerebras（Wikimedia Commons）。hd/target/walmart/coreweave のロゴは未取得（写真ファーストのため非ブロッキング）
+- 検索レイヤ: 429発生時は SearXNG 自部署（`tools/searxng/search.ps1`）を優先使用（`phases/phase3-asset-fetching.md` 改訂済み）
+- 全アセットを `assets/brands/manifest.md` に登記済み（29行追記）
+- シーン表との不一致: なし（シーン表の必要アセットは全て写真/概念図/ロゴのいずれかで充足）
+
+### Gate #3 自己点検
+
+- [x] 採用素材の必要画像が漏れなく取得されている（シーン表36シーン全てに対応アセット割当済み）
+- [x] 本社実写（単独用）・ロゴ（補助）・人物・概念図が揃い、manifest.md に追記済み
+- [x] 取得画像は全て PIL/ヘッダ検証済み（破損なし）
+- [x] Stage S2（画面HTML）完了: `visual.html` 作成（39画面・45画像参照・検証済み）
