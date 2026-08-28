@@ -1,0 +1,37 @@
+{
+  "segment": "S05-B1-02",
+  "slide": "s5",
+  "voice": "xiaomei",
+  "total_pieces": 4,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "部門の中身も見ておきます。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "データセンターの八百九十点二億ドルに対し、エッジコンピューティング部門は七十二億ドルと前年比二十七パーセント増。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "PCやゲーム機、ロボティクス、自動車といったレガシー寄りの領域も、物理エーアイへの需要でしっかり伸びています。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "ブラックウェル・ワークステーションの需要は強い一方、メモリ高騰でPC全体の価格が上がり、消費者向けの需要を若干削いでいる点は、後で見る粗利率の話と繋がります。",
+      "after": null,
+      "index": 3,
+      "wav": "seg_0003.wav"
+    }
+  ]
+}

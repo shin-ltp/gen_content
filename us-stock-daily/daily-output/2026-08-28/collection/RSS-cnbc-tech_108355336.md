@@ -1,0 +1,33 @@
+---
+id: RSS-cnbc-tech:108355336
+category: news
+ticker: 
+title: What's expected at Apple's September event — plus, an uneven rally in AI stocks
+source: cnbc-tech
+source_type: media
+url: https://www.cnbc.com/2026/08/27/what-to-expect-from-apples-september-event-and-whats-driving-rally.html
+relevance: us-stock
+collected_at: 2026-08-28T07:23
+collector: collect-rss
+priority: TBD
+feed: cnbc-tech
+pub_date: 2026-08-27
+assets_needed: []
+assets_status: none
+adopted: false
+status: raw
+---
+
+## Body
+
+Livestream Menu Make It select USA INTL Livestream Search quotes, news & videos Livestream Watchlist SIGN IN Create free account Markets Business Investing Tech Politics & Policy Video Watchlist Investing Club PRO Livestream Menu
+
+What's expected at Apple's September event — plus, an uneven rally in AI stocks Published Thu, Aug 27 2026 2:46 PM EDT Jeff Marks @jeffmarkscnbc Morgan Chittum @morgan_chittum Every weekday, the CNBC Investing Club with Jim Cramer releases the Homestretch — an actionable afternoon update, just in time for the last hour of trading on Wall Street. Markets are higher Thursday , with the S & P 500 up about 0.75% and the Nasdaq gaining roughly 1.5%. Stocks are getting a lift from strong earnings, but we would hardly call this a broad-based rally. Technology is the only S & P 500 sector in the green, and even within tech the picture is mixed. Software stocks are surging in reaction to strong earnings from Salesforce and CrowdStrike . Shares of both companies jumped roughly 20% after reporting beat-and-raise quarters. Salesforce also announced a key AI partnership with Anthropic that's helping push back on the SaaSpocalypse narrative and lift the iShares Expanded Tech-Software Sector ETF into positive territory for the year. As software rallied, AI infrastructure stocks mostly traded lower. It's an interesting dynamic because one would expect Nvidia's roughly 10% rally and commentary about accelerating AI demand would be a positive read-through for the broader cohort. But it's not translating Thursday. One theory we have is that short covering in software stocks is prompting investors to sell their popular AI stocks. But given the positive comments from Nvidia CEO Jensen Huang and Salesforce CEO Marc Benioff on Wednesday, it will be interesting to see in the coming months whether there's enough money in the market for both software and AI stocks to rally simultaneously. Mark your calendars: Apple has scheduled a launch event for Sept. 9 , the first to be hosted by incoming CEO John Ternus , who will replace Tim Cook next week. It's widely expected that Apple will announce a new foldable iPhone , marking the second new form factor in as many years following last year's launch of the ultra-thin iPhone Air. Apple is forecasted to ship more than 17 million foldable iPhones by 2027, according to research firm IDC , grabbing a 40% share in the segment that rivals like Huawei and Samsung have dominated for years. Although the device could come with a lofty average selling price exceeding $2,550, IDC predicts that Apple will still find willing buyers and generate more than $45.7 billion in value, accounting for over half of the category's total value. "[It's] an extraordinary outcome for a product expected to be less than two years into its lifecycle," said Nabila Popal, a senior research director at IDC. In fact, demand looks strong enough to revive the lagging foldables market, which IDC expects to suffer double-digit declines this year without Apple. However, foldable shipments are now forecast to grow 12.6% in 2026 and 18% in 2027, driven in part by the foldable iPhone. The broader smartphone market still remains rocky. IDC slashed its overall 2026 outlook to a 16.7% decline as rising AI demand pushes up memory costs, which companies are passing on to buyers. Apple hasn't formally raised iPhone prices yet, but many expect that could be coming at the September event. The company needs to protect its gross margins in this "a hundred-year flood on memory pricing," as Cook described it on his July earnings call. Something to consider, though, is that many iPhones are purchased through carriers like Verizon , AT & T and T-Mobile . Their trade-in programs and other promotions reduce the final cost to consumers. Apple's recently launched Upgrade program also helps ease some of the sticker shock some may feel with the new phones. It's another important earnings night with Marvell Technology , Iren , Affirm , Ulta , Workday , SentinelOne , Gap , and Autodesk scheduled to report. On the data side, we'll see the University of Michigan consumer sentiment and 1-year inflation expectations. However, the main event on Friday is Fed Chair Kevin Warsh's speech at the Jackson Hole Economic Policy Symposium at 10 a.m. ET. This is an important event because the Fed Chair has historically used it to communicate their monetary policy framework. (See here for a full list of the stocks in Jim Cramer's Charitable Trust.) As a subscriber to the CNBC Investing Club with Jim Cramer, you will receive a trade alert before Jim makes a trade. Jim waits 45 minutes after sending a trade alert before buying or selling a stock in his charitable trust's portfolio. If Jim has talked about a stock on CNBC TV, he waits 72 hours after issuing the trade alert before executing the trade. THE ABOVE INVESTING CLUB INFORMATION IS SUBJECT TO OUR TERMS AND CONDITIONS AND PRIVACY POLICY , TOGETHER WITH OUR DISCLAIMER . NO FIDUCIARY OBLIGATION OR DUTY EXISTS, OR IS CREATED, BY VIRTUE OF YOUR RECEIPT OF ANY INFORMATION PROVIDED IN CONNECTION WITH THE INVESTING CLUB. NO SPECIFIC OUTCOME OR PROFIT IS GUARANTEED. More In Homestretch Micron elevates two executives. Plus, what the Meta settlement means for its top line Jeff Marks OpenAI says its Broadcom custom chip is a winner. What does that mean for Nvidia? Jeff Marks We're downgrading 2 AI stocks — plus, what we need to see to turn more positive Jeff Marks Read More Subscribe to CNBC PRO Subscribe to Investing Club Licensing & Reprints CNBC Councils Join the CNBC Panel Digital Products News Releases Closed Captioning Corrections About CNBC Internships Site Map Careers Help Contact News Tips Got a confidential news tip? We want to hear from you.
+
+Sign up for free newsletters and get more CNBC delivered to your inbox
+
+Get this delivered to your inbox, and more info about our products and services.
+
+© 2026 Versant Media, LLC. All Rights Reserved. A Versant Media Company.
+
+Data is a real-time snapshot *Data is delayed at least 15 minutes. Global Business and Financial News, Stock Quotes, and Market Data and Analysis.

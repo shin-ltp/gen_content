@@ -1,0 +1,55 @@
+{
+  "segment": "S30-D02-week",
+  "slide": "s30",
+  "voice": "xiaomei",
+  "total_pieces": 7,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "来週以降の焦点は三つ。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "九月三日はテスラのCybercab発表会。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "六年間待たされたロボタクシーの実現が正念場を迎えます。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "九月九日は財務省の長期債買い増しオペレーションの初回実施。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "B-二のTreasury Twistが実際に機能するかの最初の検証です。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "そして九月十五日と十六日のエフオーエムシー。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "コアPCE三点三パーセントと三人の利上げ派を抱えた状態での判断が注目されます。",
+      "after": null,
+      "index": 6,
+      "wav": "seg_0006.wav"
+    }
+  ]
+}

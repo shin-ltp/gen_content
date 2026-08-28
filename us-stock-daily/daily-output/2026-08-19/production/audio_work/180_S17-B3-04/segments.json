@@ -1,0 +1,79 @@
+{
+  "segment": "S17-B3-04",
+  "slide": "s17",
+  "voice": "xiaomei",
+  "total_pieces": 11,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "エフアールビーは二重の挟撃にあります。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "インフレ三点四パーセントは目標超、雇用は失速。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "だが忘れてはいけないのは、三十年債を押し上げている主因は政策金利ではなく財政だ、ということ。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "B-一で見た通り、利上げをして長期金利が下がる構図にはありません。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "政策の道具箱が、問題の所在地とズレているのです。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "行動指針として三つ。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "第一に、本日午後のエフオーエムシー議事録で、例の三人が何を根拠に利上げを主張したかを確認する。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "インフレか、金融安定か。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "第二に、九月エフオーエムシーの前にはもう一回シーピーアイがある。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "本命は十月のシナリオが有力。",
+      "after": "period",
+      "index": 9,
+      "wav": "seg_0009.wav"
+    },
+    {
+      "text": "第三に、金利敏感セクターの仕込みは、議事録の内容を確認してからでも遅くない。",
+      "after": null,
+      "index": 10,
+      "wav": "seg_0010.wav"
+    }
+  ]
+}

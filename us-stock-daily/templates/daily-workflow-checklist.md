@@ -54,7 +54,7 @@
 
 ## フェーズ2: コンテンツ制作
 
-> **※ 正式なコーナー構成は A → B → C → D（[../spec/content-framework.md](../spec/content-framework.md)）。下記 B〜F セクションは制作作業の便宜上の細分であり、実際にはすべて **B（メインテーマ・約30分）** に統合される（B=マクロ／C=リサーチ／D=個別株深層分析／E=戦略リスク は B 内のトピック、F=ニュースは C に相当）。ひな形は [daily-template.md](./daily-template.md)。
+> **※ 正式なコーナー構成は A → B → C → D（[../spec/content-framework.md](../spec/content-framework.md)）。下記 B〜F セクションは制作作業の便宜上の細分であり、実際にはすべて **B（メインテーマ・25-40分）** に統合される（B=マクロ／C=リサーチ／D=個別株深層分析／E=戦略リスク は B 内のトピック、F=ニュースは C に相当）。ひな形は [daily-template.md](./daily-template.md)。
 
 ### Aセクション: オープニング（前日総括＋核心予告） [10-15分]
 > 旧 OP（俳句）は A に統合。**俳句は任意の表現形式**。指数の流水帳は廃止（[../spec/content-framework.md](../spec/content-framework.md) / 鉄則一）。

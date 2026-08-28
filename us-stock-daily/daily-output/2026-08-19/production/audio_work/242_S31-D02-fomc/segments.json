@@ -1,0 +1,25 @@
+{
+  "segment": "S31-D02-fomc",
+  "slide": "s31",
+  "voice": "xiaomei",
+  "total_pieces": 2,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "午後はエフオーエムシー議事録の公表。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "九対三に割れた前回会合の内実、とりわけ利上げを求めた三人の論拠が明らかになります。",
+      "after": null,
+      "index": 1,
+      "wav": "seg_0001.wav"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "segment": "S03-A02-markets",
+  "slide": "s3",
+  "voice": "xiaomei",
+  "total_pieces": 4,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "その他の市場。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "米十年債利回りは四点七一パーセントと高水準圏。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "金は零点三七パーセント安、ビットコインは零点六パーセント安。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "ホルムズ海峡を巡る緊張が続く中、ダブリューティーアイ原油は零点七七パーセント高と続伸しています。",
+      "after": null,
+      "index": 3,
+      "wav": "seg_0003.wav"
+    }
+  ]
+}

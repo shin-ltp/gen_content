@@ -1,0 +1,73 @@
+{
+  "segment": "S13-B2-02",
+  "slide": "s13",
+  "voice": "xiaomei",
+  "total_pieces": 10,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "結果は、まだ成功とは言えません。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "発表当日に長期金利は急低下しましたが、その後反転上昇。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "木曜の時点で十年債は四点七三パーセント、三十年債は五点二七パーセントと、どちらも発表前の水準を上回っています。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "さらに注意すべきはインフレ期待の反応です。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "十年物のブレークイーブン・レートは二点三四パーセントまで上昇し、六月十日以来の高さ。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "マッコーリーのウィズマン氏は「買い増し発表で十年ブレークイーブンは六〜七ベーシスポイント上昇した。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "あたかもこの発表がインフレ的であるかのようだ」と指摘します。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "財務省が金利を抑えようとして、むしろインフレ懸念を刺激する。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "市場はこの操作を「財政の弱さの証明」と読んでいる側面があります。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "ドルが今週零点九パーセント近く下落したのも、同じ文脈です。",
+      "after": null,
+      "index": 9,
+      "wav": "seg_0009.wav"
+    }
+  ]
+}

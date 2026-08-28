@@ -1,0 +1,31 @@
+{
+  "segment": "S29-C01",
+  "slide": "s29",
+  "voice": "xiaomei",
+  "total_pieces": 3,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "ウォルマート。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "決算は上振れたものの、第三四半期の指引への失望から九パーセント急落。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "関税還付二十九億ドルを値下げに充てる方針です。",
+      "after": null,
+      "index": 2,
+      "wav": "seg_0002.wav"
+    }
+  ]
+}

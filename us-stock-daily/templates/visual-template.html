@@ -3,11 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smart Assets 米国株投資 — ビジュアルテンプレート v2</title>
+<title>Smart Assets 米国株 — ビジュアルテンプレート v2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@500;700&family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+/*
+ * Smart Assets 米国株 — 共通ルール（2026-08-27 改訂）
+ * 1. 角ヘッダーの番組名は「Smart Assets 米国株」。正式チャンネル名は「Smart Assets 米国株投資チャンネル」。参考番組名（美投侃新聞等）は一切表示しない。
+ * 2. 角ヘッダー（ロゴ＋番組名）は右下に統一配置。テーマ見出しとの混雑を避けるため右上には置かない。ページラベル（日付チップ・構成名チップ）は表示しない。
+ * 3. 左図右文レイアウト: 左画像は画面高100%・左余白なし。出所は画像内下部キャプションに置き、説明文は載せない。
+ * 4. 画面フッター行（出所・注釈・ページ番号・署名）は設けない。
+ * 5. テンプレ構成名（A-1 / B-2 / C 等の記号）は画面に出さない。編集上の小見出し（「発端」「歴史比較」等）のみ可。
+ * 6. News Highlights は一覧1画面のみ。1本ずつの詳細スライドは作成しない。
+ * 7. B セクションの各画面は右コンテンツ先頭にテーマ見出し（例: テーマ①｜長期金利と半導体急落）を表示する。
+ * 8. D（直近イベント予告）は週間タイムライン1画面のみ。1日ずつの詳細スライドは作成しない。
+ * 9. オープニングタイトルカード（S0）は YouTube サムネイルを兼ねる: ロゴ＋チャンネル名＋タグラインを主体内容に配置し、モバイルの一覧視認性を最優先（中央寄せ・大フォント・高コントラスト）。
+ * 10. チャートは条件付き使用（spec/vision-design.md §0.6）: 長期トレンド／周期性／歴史対照／複数指標の相互作用の4场景のみ。それ以外は純数字＋色ブロック＋段階リストを優先（L4b がチャート用版式）。
+*/
 :root{
   --navy-deep:#0B1426; --navy-mid:#152238; --navy-light:#1E3150;
   --offwhite:#F8F5EE; --cream:#F0EBE0;
@@ -30,23 +43,33 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 .slide-container{margin-top:58px;padding:28px;display:flex;flex-direction:column;align-items:center;gap:48px}
 .slide{width:var(--slide-width);height:var(--slide-height);position:relative;overflow:hidden;box-shadow:0 18px 55px rgba(0,0,0,.5);border-radius:4px;transform-origin:top center}
 .slide-label{position:absolute;top:-32px;left:0;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase}
+.show-logo{position:absolute;bottom:28px;right:60px;z-index:5;display:flex;align-items:center;gap:16px}
+.show-logo img{height:56px;display:block}
+.show-logo span{font-family:'Inter','Noto Sans JP',sans-serif;font-weight:900;font-size:26px;color:#fff;letter-spacing:.5px;white-space:nowrap}
+.theme-chip{position:absolute;top:44px;left:54px;display:inline-flex;align-items:center;gap:10px;border:2px solid var(--amber);color:var(--amber);border-radius:10px;padding:7px 18px;font-size:21px;font-weight:900;letter-spacing:1px;background:rgba(255,179,0,.1)}
+.slide-news .theme-chip,.slide-disclaimer .theme-chip{display:none}
+.photo-frame{position:absolute;inset:0;overflow:hidden}
+.photo-frame .placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy-mid),var(--navy-light));color:rgba(255,255,255,.35);font-size:20px;letter-spacing:2px}
+.pf-cap{position:absolute;left:0;right:0;bottom:0;padding:30px 20px 14px;background:linear-gradient(transparent,rgba(0,0,0,.78));color:rgba(255,255,255,.92);font-size:17px;font-weight:600}
 
 /* L1 Opening */
-.slide-opening{background:linear-gradient(135deg,var(--navy-deep) 0%,#0D1B30 45%,var(--navy-mid) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.slide-opening{background:linear-gradient(135deg,var(--navy-deep) 0%,#0D1B30 45%,var(--navy-mid) 100%);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:48px 68px;position:relative}
 .slide-opening::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 18% 45%,rgba(255,179,0,.07) 0%,transparent 50%),radial-gradient(ellipse at 82% 25%,rgba(67,160,71,.05) 0%,transparent 50%)}
-.slide-opening .channel-logo{position:absolute;top:52px;left:64px;display:flex;align-items:center;gap:16px;z-index:1}
-.slide-opening .logo-mark{width:68px;height:68px;background:linear-gradient(135deg,var(--amber),#FF8F00);border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:900;font-size:28px;color:var(--navy-deep)}
-.slide-opening .logo-text{font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:rgba(255,255,255,.92)}
-.slide-opening .logo-text span{display:block;font-size:15px;font-weight:400;color:rgba(255,255,255,.55);margin-top:4px;letter-spacing:1px}
-.slide-opening .title-area{text-align:center;z-index:1}
+.slide-opening .omain{margin:auto;display:flex;flex-direction:column;align-items:center;gap:28px;text-align:center;z-index:1}
+.slide-opening .olockup{display:flex;align-items:center;gap:46px;text-align:left}
+.slide-opening .olockup img{height:240px;display:block;filter:drop-shadow(0 10px 34px rgba(0,0,0,.6))}
+.slide-opening .obrand-name{font-weight:900;font-size:42px;color:#fff;line-height:1.2;margin-bottom:16px;text-shadow:0 4px 16px rgba(0,0,0,.55)}
+.slide-opening .omain .date-badge{margin-bottom:0}
 .slide-opening .date-badge{display:inline-block;background:rgba(255,179,0,.16);border:1px solid rgba(255,179,0,.35);color:var(--amber);padding:10px 30px;border-radius:28px;font-size:22px;font-weight:600;letter-spacing:1px;margin-bottom:30px}
-.slide-opening .main-title{font-weight:900;font-size:92px;color:#fff;line-height:1.18}
+.slide-opening .olockup .main-title{font-weight:900;font-size:88px;color:#fff;line-height:1.14;text-shadow:0 6px 26px rgba(0,0,0,.55)}
 .slide-opening .main-title .accent{color:var(--amber)}
 .slide-opening .subtitle{font-size:30px;color:rgba(255,255,255,.68);margin-top:24px}
 .slide-opening .host-area{position:absolute;bottom:52px;right:64px;display:flex;align-items:center;gap:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);padding:14px 26px;border-radius:14px;z-index:1}
 .slide-opening .host-avatar{width:58px;height:58px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;color:rgba(255,255,255,.45);letter-spacing:1px}
 .slide-opening .host-name{font-size:20px;font-weight:700;color:rgba(255,255,255,.92)}
 .slide-opening .host-role{font-size:15px;color:rgba(255,255,255,.55);margin-top:2px}
+.slide-opening .ochips{display:flex;gap:12px;justify-content:center;z-index:1}
+.slide-opening .ochips span{background:rgba(8,16,32,.78);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:12px 24px;font-size:25px;font-weight:800;color:#fff}
 
 /* L1b Haiku */
 .slide-haiku{background:var(--navy-deep);display:flex;align-items:center;justify-content:center;position:relative}
@@ -87,11 +110,10 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 .slide-market .key-points li::before{content:'▸ ';color:var(--amber);font-weight:900}
 
 /* L3 Highlights */
-.slide-highlights{background:var(--offwhite);padding:52px 64px;display:flex;gap:44px}
-.slide-highlights .left-panel{width:360px;display:flex;flex-direction:column;gap:14px;justify-content:center}
-.slide-highlights .topic-image{width:100%;aspect-ratio:1;background:linear-gradient(135deg,var(--navy-light),var(--navy-mid));border-radius:14px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.32);font-size:20px;letter-spacing:2px}
-.slide-highlights .topic-label{font-size:17px;color:var(--text-light);text-align:center}
-.slide-highlights .right-panel{flex:1;display:flex;flex-direction:column;justify-content:center}
+.slide-highlights{background:var(--offwhite);position:relative}
+.slide-highlights .left-visual{position:absolute;left:0;top:0;width:40%;height:100%}
+.slide-highlights .right-panel{position:absolute;right:0;top:0;width:60%;height:100%;padding:120px 64px 48px 54px;display:flex;flex-direction:column;justify-content:center}
+.slide-highlights .show-logo span{color:var(--text-dark)}
 .slide-highlights .section-header{font-weight:900;font-size:48px;margin-bottom:26px;padding-bottom:14px;border-bottom:5px solid var(--amber)}
 .slide-highlights .topic-list{display:flex;flex-direction:column;gap:14px}
 .slide-highlights .topic-item{display:flex;align-items:center;gap:22px;padding:22px 26px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,.07)}
@@ -104,11 +126,8 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 /* L4 Deep analysis (split) */
 .slide-analysis{background:var(--navy-deep);display:flex;position:relative}
 .slide-analysis::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 28% 50%,rgba(30,49,80,.55) 0%,transparent 60%)}
-.slide-analysis .left-visual{width:38%;padding:56px;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1}
-.slide-analysis .brand-image{width:100%;max-width:420px;aspect-ratio:1;background:linear-gradient(135deg,var(--navy-mid),var(--navy-light));border-radius:20px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12)}
-.slide-analysis .brand-image .placeholder{font-size:19px;color:rgba(255,255,255,.35);letter-spacing:2px}
-.slide-analysis .visual-source{margin-top:22px;font-size:19px;color:var(--source-green);font-weight:500;text-align:center}
-.slide-analysis .right-content{width:62%;padding:56px 64px 56px 0;display:flex;flex-direction:column;justify-content:center;z-index:1}
+.slide-analysis .left-visual{position:absolute;left:0;top:0;width:40%;height:100%;z-index:1}
+.slide-analysis .right-content{position:absolute;right:0;top:0;width:60%;height:100%;padding:120px 64px 48px 54px;display:flex;flex-direction:column;justify-content:center;z-index:1}
 .slide-analysis .analysis-source{font-size:20px;color:var(--source-green);font-weight:700;letter-spacing:.5px;margin-bottom:12px}
 .slide-analysis .analysis-title{font-weight:700;font-size:54px;color:var(--amber);line-height:1.25;margin-bottom:28px}
 .slide-analysis .data-list{display:flex;flex-direction:column;gap:18px}
@@ -119,7 +138,6 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 .slide-analysis .conclusion-box{margin-top:32px;background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.35);border-radius:10px;padding:20px 26px}
 .slide-analysis .conclusion-label{font-size:19px;font-weight:900;color:var(--red);letter-spacing:2px;margin-bottom:6px}
 .slide-analysis .conclusion-text{font-size:28px;color:#fff;font-weight:500;line-height:1.5}
-.slide-analysis .signature{position:absolute;bottom:34px;right:64px;font-size:18px;color:rgba(255,255,255,.42);font-style:italic}
 
 /* L4b Deep analysis (fullscreen + chart) */
 .slide-analysis-full{background:var(--navy-deep);padding:44px 60px;display:flex;flex-direction:column;position:relative}
@@ -162,10 +180,31 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 .slide-news .news-title{font-size:25px;font-weight:500;line-height:1.4}
 .slide-news .news-item.dimmed{opacity:.38}
 
+/* L5b Week timeline (D) */
+.slide-week{background:var(--offwhite);padding:44px 56px;display:flex;flex-direction:column;position:relative}
+.slide-week .show-logo span{color:var(--text-dark)}
+.week-title{font-weight:900;font-size:44px;color:var(--text-dark)}
+.week-grid{flex:1;display:grid;grid-template-columns:repeat(5,1fr);gap:18px;margin-top:28px;align-items:start}
+.day-col{display:flex;flex-direction:column;min-width:0}
+.day{font-family:'JetBrains Mono',monospace;font-size:31px;font-weight:700;color:var(--text-dark);display:flex;align-items:baseline;gap:8px}
+.day span{font-size:20px;color:var(--text-light)}
+.day em{font-style:normal;font-size:15px;font-weight:900;color:#fff;background:var(--red);border-radius:6px;padding:3px 10px;margin-left:auto;letter-spacing:1px}
+.day-col.next .day em{background:var(--green)}
+.dot{height:16px;width:16px;border-radius:50%;background:var(--cream);border:3px solid rgba(0,0,0,.14);margin:12px 0 0}
+.day-col.today .dot{background:var(--red);border-color:rgba(229,57,53,.45)}
+.day-col.next .dot{background:var(--green);border-color:rgba(67,160,71,.4)}
+.day-events{display:flex;flex-direction:column;gap:12px;border-top:3px solid rgba(0,0,0,.1);padding-top:14px;flex:1}
+.day-col.today .day-events{border-top-color:var(--red)}
+.day-col.next .day-events{border-top-color:var(--green)}
+.day-events .none{font-size:20px;color:var(--text-light);padding:10px 0}
+.day-events .evt{background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:10px;padding:14px 16px}
+.day-events .evt b{display:block;font-size:22px;color:var(--text-dark);line-height:1.35}
+.day-events .evt small{display:block;font-size:17px;color:var(--text-mid);margin-top:4px}
+
 /* L6 Disclaimer */
 .slide-disclaimer{background:#F0EDE6;display:flex;align-items:center;justify-content:center;padding:64px}
 .slide-disclaimer .disclaimer-content{max-width:1420px;text-align:center}
-.slide-disclaimer .disclaimer-title{font-weight:900;font-size:38px;margin-bottom:26px}
+.slide-disclaimer .disclaimer-title{font-weight:900;font-size:38px;margin-bottom:26px;color:var(--text-dark)}
 .slide-disclaimer .disclaimer-text{font-size:28px;color:var(--text-mid);line-height:1.95}
 .slide-disclaimer .channel-footer{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:40px;padding-top:28px;border-top:1px solid rgba(0,0,0,.09)}
 .slide-disclaimer .footer-logo{width:42px;height:42px;background:var(--amber);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:900;font-size:18px;color:var(--navy-deep)}
@@ -183,7 +222,7 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 </head>
 <body>
 <div class="nav-bar">
-  <div class="logo">SMART ASSETS 米国株投資</div>
+  <div class="logo">SMART ASSETS 米国株</div>
   <div class="nav-links">
     <button class="active" onclick="scrollToSlide(0)">L1 オープニング</button>
     <button onclick="scrollToSlide(1)">L1b 俳句</button>
@@ -192,6 +231,7 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
     <button onclick="scrollToSlide(4)">L4 深層分析</button>
     <button onclick="scrollToSlide(5)">L4b 全画面分析</button>
     <button onclick="scrollToSlide(6)">L5 ニュース</button>
+    <button onclick="scrollToSlide(8)">L5b 週間予定</button>
     <button onclick="scrollToSlide(7)">L6 免責</button>
   </div>
 </div>
@@ -199,30 +239,26 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 <div class="slide-container">
 
 <div class="slide slide-opening" id="slide-0">
-  <div class="slide-label">Layout 1 — Opening title card</div>
-  <div class="channel-logo">
-    <div class="logo-mark">SA</div>
-    <div class="logo-text">Smart Assets<span>米国株投資</span></div>
-  </div>
-  <div class="title-area">
-    <div class="date-badge">2026年8月20日（水）</div>
-    <h1 class="main-title">米国株式<span class="accent">デイリー</span><br>深層分析</h1>
-    <p class="subtitle">今日の市場を、データと洞察で読み解く</p>
-  </div>
-  <div class="host-area">
-    <div class="host-avatar">HOST</div>
+  <div class="slide-label">Layout 1 — Opening title card (YouTube thumbnail)</div>
+  <div class="omain">
+    <div class="olockup">
+    <img src="../assets/logo.png" alt="Smart Assets 米国株投資チャンネル">
     <div>
-      <div class="host-name">ホスト名（未定）</div>
-      <div class="host-role">アナリスト</div>
+      <div class="obrand-name">Smart Assets 米国株投資チャンネル</div>
+      <h1 class="main-title">米国株式<span class="accent">デイリー</span><br>深層分析</h1>
     </div>
   </div>
+    <div class="date-badge">2026年8月20日（水）</div>
+    <p class="subtitle">今日の市場を、データと洞察で読み解く</p>
+  </div>
+  <div class="ochips"><span>30年債 5.33%</span><span>NVDA $5,000億</span><span>FRB 9対3</span><span>K型消費</span></div>
 </div>
 
 <div class="slide slide-haiku" id="slide-1">
   <div class="slide-label">Layout 1b — Opening haiku</div>
   <div>
     <div class="haiku-text">秋風や<br>金利の波に<br>葉が舞う</div>
-    <div class="haiku-annotation">— 本日の市場を一句で —</div>
+    <div class="haiku-annotation">— 本日の市場の一句 —</div>
   </div>
 </div>
 
@@ -269,9 +305,9 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 
 <div class="slide slide-highlights" id="slide-3">
   <div class="slide-label">Layout 3 — Today's topics</div>
-  <div class="left-panel">
-    <div class="topic-image">THEME IMAGE</div>
-    <div class="topic-label">テーマ画像エリア（ロゴ・決算資料など）</div>
+  <div class="show-logo"><img src="../assets/logo.png" alt="Smart Assets 米国株"><span>Smart Assets 米国株</span></div>
+  <div class="left-visual">
+    <div class="photo-frame"><div class="placeholder">THEME IMAGE</div><div class="pf-cap">出所: （画像出所をここに表示）</div></div>
   </div>
   <div class="right-panel">
     <div class="section-header">本日の目玉</div>
@@ -286,11 +322,12 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 
 <div class="slide slide-analysis" id="slide-4">
   <div class="slide-label">Layout 4 — Deep analysis (split)</div>
+  <div class="show-logo"><img src="../assets/logo.png" alt="Smart Assets 米国株"><span>Smart Assets 米国株</span></div>
   <div class="left-visual">
-    <div class="brand-image"><div class="placeholder">BRAND / THEME</div></div>
-    <div class="visual-source">情報源: Bloomberg / Goldman Sachs</div>
+    <div class="photo-frame"><div class="placeholder">BRAND / THEME</div><div class="pf-cap">出所: Bloomberg / Goldman Sachs</div></div>
   </div>
   <div class="right-content">
+    <div class="theme-chip">テーマ①｜長期金利と半導体急落（例）</div>
     <div class="analysis-source">マクロ深掘り · FRB政策分析</div>
     <div class="analysis-title">FRBは本当に<br>利下げに動けるか？</div>
     <div class="data-list">
@@ -303,7 +340,6 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
       <div class="conclusion-text">9月利下げは困難。市場は12月まで据え置きを前提にポジションを組むべき。</div>
     </div>
   </div>
-  <div class="signature">—— Smart Assets 見解</div>
 </div>
 
 <div class="slide slide-analysis-full" id="slide-5">
@@ -362,20 +398,39 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
   </div>
 </div>
 
+<div class="slide slide-week" id="slide-8">
+  <div class="slide-label">Layout 5b — Week timeline (D)</div>
+  <div class="show-logo"><img src="../assets/logo.png" alt="Smart Assets 米国株"><span>Smart Assets 米国株</span></div>
+  <div class="week-title">今週の予定 — 決算とマクロイベント</div>
+  <div class="week-grid">
+    <div class="day-col"><div class="day">8/17<span>月</span></div><div class="dot"></div><div class="day-events"><div class="none">特記事項なし</div></div></div>
+    <div class="day-col"><div class="day">8/18<span>火</span></div><div class="dot"></div><div class="day-events"><div class="none">特記事項なし</div></div></div>
+    <div class="day-col today"><div class="day">8/19<span>水</span><em>今日</em></div><div class="dot"></div><div class="day-events">
+      <div class="evt"><b>Target・Lowe's・TJX・ADI</b><small>決算 — 4 社とも寄り前に発表</small></div>
+      <div class="evt"><b>FOMC 議事録公表</b><small>マクロ — 午後に公表</small></div>
+    </div></div>
+    <div class="day-col next"><div class="day">8/20<span>木</span><em>明日</em></div><div class="dot"></div><div class="day-events">
+      <div class="evt"><b>Walmart・Ross Stores</b><small>決算 — 寄り前に発表</small></div>
+      <div class="evt"><b>新規失業保険申請件数</b><small>マクロ — 追加確認材料</small></div>
+    </div></div>
+    <div class="day-col"><div class="day">8/21<span>金</span></div><div class="dot"></div><div class="day-events"><div class="none">特記事項なし</div></div></div>
+  </div>
+</div>
+
 <div class="slide slide-disclaimer" id="slide-7">
   <div class="slide-label">Layout 6 — Disclaimer</div>
   <div class="disclaimer-content">
     <div class="disclaimer-title">免責事項</div>
-    <div class="disclaimer-text">本番組の全内容は学習と考え方の共有のみを目的としており、<br>直接的な売買推奨を構成するものではありません。<br>投資にはリスクが伴います。ご自身のポジション管理を適切に行い、<br>独立した投資判断を行ってください。</div>
+    <div class="disclaimer-text">本番組の全内容は金融・投資に関する情報提供やリテラシーの共有のみを目的としており、<br>直接的な売買推奨を構成するものではありません。<br>投資にはリスクが伴います。ご自身のポジション管理を適切に行い、<br>独立した投資判断を行ってください。</div>
     <div class="channel-footer">
       <div class="footer-logo">SA</div>
-      <div class="footer-text">Smart Assets 米国株投資</div>
+      <div class="footer-text">Smart Assets 米国株投資チャンネル</div>
     </div>
   </div>
 </div>
 
 <div class="color-palette">
-  <h3>カラーパレット — Smart Assets 米国株投資</h3>
+  <h3>カラーパレット — Smart Assets 米国株投資チャンネル</h3>
   <div class="color-swatches">
     <div class="color-swatch"><div class="swatch-box" style="background:#0B1426"></div><div class="swatch-label">濃紺（分析背景）</div><div class="swatch-hex">#0B1426</div></div>
     <div class="color-swatch"><div class="swatch-box" style="background:#152238"></div><div class="swatch-label">中濃紺</div><div class="swatch-hex">#152238</div></div>

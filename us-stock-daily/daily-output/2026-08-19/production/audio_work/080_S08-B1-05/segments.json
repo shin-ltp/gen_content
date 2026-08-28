@@ -1,0 +1,79 @@
+{
+  "segment": "S08-B1-05",
+  "slide": "s8",
+  "voice": "xiaomei",
+  "total_pieces": 11,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "今日の下落を「エーアイバブル破裂の確認」と呼ぶのは早計です。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "半導体指数は六月の高値から約十五パーセント下落したものの、年初来ではまだ約七十二パーセント上昇しています。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "これは破裂ではなく、資本コストの再価格付け、いわばディレーティングです。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "個人の行動指針として三つ。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "第一に、半導体の押し目を焦って拾わないこと。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "三十年債利回りが五点三三パーセントから五点五パーセント圏のどこで頭打ちになるか、そして本日午後に公表されるエフオーエムシー議事録の内容を確認してからでも遅くはありません。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "第二に、保有ポートフォリオの金利感応度を点検すること。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "ピーイーアールが高く、利益が遠い将来に偏った銘柄の比率が、自分の想定より大きくなっていないか。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "第三に、正直なデータ制約のお知らせです。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "本日の素材にはエヌビディアとエーエムディーの大手証券目標株価が含まれておらず、鉄則二の目標株価は、後述のホームデポの三百七十ドルで示します。",
+      "after": "period",
+      "index": 9,
+      "wav": "seg_0009.wav"
+    },
+    {
+      "text": "この欠落は明日以降の収集で補完します。",
+      "after": null,
+      "index": 10,
+      "wav": "seg_0010.wav"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "segment": "S22-C04",
+  "slide": "s22",
+  "voice": "xiaomei",
+  "total_pieces": 3,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "アンソロピック。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "年換算収益が六百五十億ドルに到達し、前年の七倍。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "アイピーオー前の成長証明となります。",
+      "after": null,
+      "index": 2,
+      "wav": "seg_0002.wav"
+    }
+  ]
+}

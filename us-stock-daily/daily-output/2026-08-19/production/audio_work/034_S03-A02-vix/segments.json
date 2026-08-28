@@ -1,0 +1,43 @@
+{
+  "segment": "S03-A02-vix",
+  "slide": "s3",
+  "voice": "xiaomei",
+  "total_pieces": 5,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "ヴィックスは十五点八四と、恐慌の水準ではありません。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "売り逃げではなく「選別」の相場です。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "では、何を基準に選別されたのか。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "遠い将来の成長ほど割引率で目減りする、この単純な計算こそが昨日の相場の正体であり、冒頭の四問すべての伏線です。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "まずは、その金利の深層から。",
+      "after": null,
+      "index": 4,
+      "wav": "seg_0004.wav"
+    }
+  ]
+}

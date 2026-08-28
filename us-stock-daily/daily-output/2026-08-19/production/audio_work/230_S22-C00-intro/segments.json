@@ -1,0 +1,19 @@
+{
+  "segment": "S22-C00-intro",
+  "slide": "s22",
+  "voice": "xiaomei",
+  "total_pieces": 1,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "次は本日のニュースハイライトです。",
+      "after": null,
+      "index": 0,
+      "wav": "seg_0000.wav"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "segment": "S14-B2-03",
+  "slide": "s14",
+  "voice": "xiaomei",
+  "total_pieces": 9,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "では財務省にはどれだけの「弾薬」があるのか。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "上級財務省当局者二名がCNBCに明かしたところによれば、答えは財務省総勘定、いわゆるTGAです。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "現在の残高は約九千五百億ドル。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "バイデン政権期の目標だった五千五百〜六千億ドルに対して大幅に積み増しされています。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "ここを取り崩せば、短期証券の追加発行なしに長期債を買うことができ、市場への影響力は大きく変わります。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "初回オペは九月九日に実施予定。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "ただし批判もあります。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "四半期ごとの借り入れ発表からわずか二週間後という、長年の「規則性と予測可能性」の原則を破るタイミングだった点です。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "財務省は「実際の入札スケジュールは変更していない」と反論しています。",
+      "after": null,
+      "index": 8,
+      "wav": "seg_0008.wav"
+    }
+  ]
+}

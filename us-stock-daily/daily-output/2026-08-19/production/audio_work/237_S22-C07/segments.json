@@ -1,0 +1,31 @@
+{
+  "segment": "S22-C07",
+  "slide": "s22",
+  "voice": "xiaomei",
+  "total_pieces": 3,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "バークシャー・ハサウェイ。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "営業利益十六パーセント増に加え、十四四半期ぶりに株のネット買いへ転換。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "アルファベットが上位五大持株に加わりました。",
+      "after": null,
+      "index": 2,
+      "wav": "seg_0002.wav"
+    }
+  ]
+}

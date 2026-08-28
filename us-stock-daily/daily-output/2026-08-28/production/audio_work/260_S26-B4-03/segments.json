@@ -1,0 +1,115 @@
+{
+  "segment": "S26-B4-03",
+  "slide": "s26",
+  "voice": "xiaomei",
+  "total_pieces": 17,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "対するクレイマーは、四半期ベースで倍増したエーアイバンドルの予約契約、営業・サービス・Slackすべてで席位が前年比増、歴史的低水準の顧客流出を根拠に、「四年ぶりの最も強い売上成長」と評価します。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "キーバンクのエーダー氏の言葉が今回の本質を突くでしょう。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "「我々は徐々に、この業界は想定よりはるかに粘り強いことを認識しつつある。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "我々は消えない。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "だからこそ、まずまずではあるが驚異的ではない決算が、これほど巨大な市場反応を引き起こしたのです」。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "つまり二十二パーセント高はファンダメンタルズの改善そのものではなく、「SaaS終焉」というポジションの一斉解消でした。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "同じ夜、サイバーセキュリティの二銘柄も同じ構造を示しました。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "クラウドストライクは史上最高の決算日となり、売上二十六パーセント増、年間経常収益五十八点四億ドル、四半期の純増三点三三億ドルは過去最高。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "通期指引を上方修正しました。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "株価は年初来六十一パーセント超の上昇です。",
+      "after": "period",
+      "index": 9,
+      "wav": "seg_0009.wav"
+    },
+    {
+      "text": "オクタも二十パーセント急騰。",
+      "after": "period",
+      "index": 10,
+      "wav": "seg_0010.wav"
+    },
+    {
+      "text": "売上十一パーセント増、新製品が予約の三十パーセントを占め、エーアイエージェントの認証管理「Okta for エーアイ Agents」が全顧客に開放されました。",
+      "after": "period",
+      "index": 11,
+      "wav": "seg_0011.wav"
+    },
+    {
+      "text": "シーイーオーは「五年十年後、数百万のエージェントが走る世界で最大のサイバーカテゴリはアイデンティティだ」と語ります。",
+      "after": "period",
+      "index": 12,
+      "wav": "seg_0012.wav"
+    },
+    {
+      "text": "引き金はアンソロピックの「Mythos」モデルです。",
+      "after": "period",
+      "index": 13,
+      "wav": "seg_0013.wav"
+    },
+    {
+      "text": "未知の脆弱性を発見できるこのモデルが、セキュリティ需要を爆発させた。",
+      "after": "period",
+      "index": 14,
+      "wav": "seg_0014.wav"
+    },
+    {
+      "text": "エーアイの進化は、そのままセキュリティの予算を増やす。",
+      "after": "period",
+      "index": 15,
+      "wav": "seg_0015.wav"
+    },
+    {
+      "text": "これは「エーアイへの安全税」とも言える構造で、毎年の更新がある経常収益モデルと相性が良い。",
+      "after": null,
+      "index": 16,
+      "wav": "seg_0016.wav"
+    }
+  ]
+}

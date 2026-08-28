@@ -1,0 +1,61 @@
+{
+  "segment": "S08-B1-05",
+  "slide": "s8",
+  "voice": "xiaomei",
+  "total_pieces": 8,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "バランスシートの膨張も注目です。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "同社が公表した金融的コミットメントは、前四半期の千百九十億ドルから二千七百九十億ドルへと倍以上に増加。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "内訳は調達二千七百九十億ドル（主にメモリ）、クラウドサービス契約二百九十億ドル、未開始のデータセンターリース二百五十億ドル、出資二百五十億ドル、設備投資八十億ドル。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "さらに土地・電力・建屋に五百六十億ドルを確保し、オハイオのオープンエーアイデータセンターには最大千五十億ドルの融資を提供します。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "合計すると約五千三百五億ドルです。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "クレスシーエフオーは「循環融資と呼ぶ人もいるだろう。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "しかし我々は違う見方をする」と反論し、需要の強さと投下資本の回収を強調しました。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "前回の番組で扱った「チップから資本へ」の戦略が、さらに加速した形です。",
+      "after": null,
+      "index": 7,
+      "wav": "seg_0007.wav"
+    }
+  ]
+}

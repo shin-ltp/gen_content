@@ -1,0 +1,31 @@
+{
+  "segment": "S04-B1-01",
+  "slide": "s4",
+  "voice": "xiaomei",
+  "total_pieces": 3,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "発端は米国債の長期金利です。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "三十年債利回りは一時五点三三パーセントまで上昇し、実に十九年ぶりの高値を付けました。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "十年債も四点七一パーセント近辺まで上がっています。",
+      "after": null,
+      "index": 2,
+      "wav": "seg_0002.wav"
+    }
+  ]
+}

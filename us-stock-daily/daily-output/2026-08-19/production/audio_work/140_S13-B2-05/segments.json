@@ -1,0 +1,73 @@
+{
+  "segment": "S13-B2-05",
+  "slide": "s13",
+  "voice": "xiaomei",
+  "total_pieces": 10,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "エーアイ需要そのものは偽物ではありません。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "ティーエスエムシーの七月売上プラス四十四点七パーセントが実需の裏付けです。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "分かれているのは資金調達の構造です。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "自己資金で投資できるメガキャップと、借入に依存する周辺企業とでは、この金利環境での生存確率が違う。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "昨日のマイクロソフトプラス零点二七パーセント、アップルプラス一点四五パーセントに対するエーエムディーの四点二七パーセント安は、その縮図です。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "行動指針として三つ。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "第一に、エーアイ関連の保有銘柄を「自己資金型か、借入依存型か」で仕分けること。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "第二に、エヌビディアの財務エンジン自体は強力、フリーキャッシュフロー四百八十五億ドルですが、保有する関連企業株式が三百二億ドルに達している点は、リスク移転の規模として注視指標にすること。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "第三に、コアウィーブやセレブラス型の銘柄は、位置サイズを厳格に管理する。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "値動きの振れ幅が、すでにその警告を発しています。",
+      "after": null,
+      "index": 9,
+      "wav": "seg_0009.wav"
+    }
+  ]
+}

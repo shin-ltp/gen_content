@@ -1,0 +1,91 @@
+{
+  "segment": "S15-B3-02",
+  "slide": "s15",
+  "voice": "xiaomei",
+  "total_pieces": 13,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "その上で、七月の雇用統計は市場を驚かせました。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "非農業雇用は二万三千人減。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "コンセンサスは八万三千人の増加を見込んでいたので、大幅な裏切りです。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "六月分は二万人増へ下方修正され、五月分も六万六千人分の切り下げ。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "直近十二か月の平均は、わずか三万四千人まで落ちました。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "ここで落とし穴です。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "失業率は四点一パーセントへ低下しましたが、これは良いニュースではありません。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "労働参加率が六十一点四パーセントまで下がり、五年超ぶりの低水準。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "コロナ期を除けば千九百七十六年以来の水準です。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "就業人口比率も五十八点九パーセントと、二千十四年五月以来の低さ。",
+      "after": "period",
+      "index": 9,
+      "wav": "seg_0009.wav"
+    },
+    {
+      "text": "フィフス・サード銀行のアダムズ氏の言う通り「失業率が下がっているのは、主に悪い理由から。",
+      "after": "period",
+      "index": 10,
+      "wav": "seg_0010.wav"
+    },
+    {
+      "text": "働き手が足りていない」のです。",
+      "after": "period",
+      "index": 11,
+      "wav": "seg_0011.wav"
+    },
+    {
+      "text": "賃金も前月二セント増にとどまり、前年三点二パーセントは二千二十一年五月以来の低伸です。",
+      "after": null,
+      "index": 12,
+      "wav": "seg_0012.wav"
+    }
+  ]
+}

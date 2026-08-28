@@ -1,0 +1,19 @@
+{
+  "segment": "S31-D00-intro",
+  "slide": "s31",
+  "voice": "xiaomei",
+  "total_pieces": 1,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "最後に、直近のイベント予告です。",
+      "after": null,
+      "index": 0,
+      "wav": "seg_0000.wav"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "segment": "S07-B1-04",
+  "slide": "s7",
+  "voice": "xiaomei",
+  "total_pieces": 5,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "歴史は何を教えるか。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "ネッド・デイビス・リサーチのカリッシュ首席マクロストラテジストの分析では、過去百年の五つの主要バブルはすべて、ピークに向かって利回りと政策金利が上昇する局面で頂点を迎えた、とされています。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "ただし、同じ分析が注意も促します。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "仮にエフアールビーが今年二十五ベーシスポイントの利上げをしても、それ一回で進行中の巨大な資金調達努力が崩れることは、おそらくない。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "むしろ本質的な問いは、利益の成長がこの投資の波を最終的に正当化できるかどうかだ、と。",
+      "after": null,
+      "index": 4,
+      "wav": "seg_0004.wav"
+    }
+  ]
+}

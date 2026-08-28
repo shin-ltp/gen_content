@@ -1,0 +1,43 @@
+{
+  "segment": "S12-B2-01",
+  "slide": "s12",
+  "voice": "xiaomei",
+  "total_pieces": 5,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "先週八月十九日、米財務省は突如、長期債の買い増しを発表しました。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "オフザラン（発行済み）の長期債買いオペを従来の二十億ドルから最低四十億ドルへと倍増するもので、ベッセント財務長官は自ら「Treasury Twist」と呼びました。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "短期証券を発行して長期債を買う、かつてのエフアールビーのオペレーション・ツイストの財務省版です。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "引き金となったのは、三十年債利回りが一時五点三パーセント超え、二千七年六月以来の水準に達したこと。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "十年債も金融危機前以来の領域に迫っていました。",
+      "after": null,
+      "index": 4,
+      "wav": "seg_0004.wav"
+    }
+  ]
+}

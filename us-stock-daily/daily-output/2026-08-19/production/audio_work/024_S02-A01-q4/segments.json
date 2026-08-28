@@ -1,0 +1,25 @@
+{
+  "segment": "S02-A01-q4",
+  "slide": "s2",
+  "voice": "xiaomei",
+  "total_pieces": 2,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "決算シーズンは八十四パーセントの企業が期待を上回る一方、小売売上は九か月ぶりの減少。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "ケー型消費の亀裂は、ホームデポと今週の決算でどこまで見えるのか。",
+      "after": null,
+      "index": 1,
+      "wav": "seg_0001.wav"
+    }
+  ]
+}

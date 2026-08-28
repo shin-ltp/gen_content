@@ -1,0 +1,31 @@
+{
+  "segment": "S22-C06",
+  "slide": "s22",
+  "voice": "xiaomei",
+  "total_pieces": 3,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "ペルトン。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "設立以来初の年間黒字を達成した一方、今期の売上見通しで十三パーセント下落。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "黒字化と成長の両立が課題です。",
+      "after": null,
+      "index": 2,
+      "wav": "seg_0002.wav"
+    }
+  ]
+}

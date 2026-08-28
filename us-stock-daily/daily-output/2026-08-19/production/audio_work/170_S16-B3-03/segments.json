@@ -1,0 +1,73 @@
+{
+  "segment": "S16-B3-03",
+  "slide": "s16",
+  "voice": "xiaomei",
+  "total_pieces": 10,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "インフレはどうか。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "七月のシーピーアイは頭上零点一パーセント増、コア零点二パーセント増と、ともにコンセンサス通り。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "前年率は頭上三点四パーセント、コア二点五パーセントと、両方とも前月から零点一ポイント改善しました。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "ただし水準は目標の二パーセントを大きく上回ったままです。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "エネルギーは七月に一点五パーセント下落したものの、前年ではまだ十四点七パーセント上昇。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "三月のイラン攻撃直後に十点九パーセント急騰した名残が残り、住居費が頭上伸びの約三分の二を占めています。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "市場の織り込みは激しく動きました。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "九月利上げの確率は、エフオーエムシー直後には五十七パーセント超だったのが、雇用統計後に四十四パーセント、シーピーアイ後には四十二パーセントまで低下。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "一方十月は五十八点三パーセントに乗っています。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "モルガン・スタンレーのゼントナー氏は「据え置き継続という物語が維持される」と見ます。",
+      "after": null,
+      "index": 9,
+      "wav": "seg_0009.wav"
+    }
+  ]
+}

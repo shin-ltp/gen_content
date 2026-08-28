@@ -1,0 +1,25 @@
+{
+  "segment": "S02-A01-q2",
+  "slide": "s2",
+  "voice": "xiaomei",
+  "total_pieces": 2,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "米財務省は長債買い増しと約一兆ドルのTGAで金利を抑え込もうとしています。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "それは市場の安定化か、それともドラケンミラーの言う先送りへの補助金か。",
+      "after": null,
+      "index": 1,
+      "wav": "seg_0001.wav"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "segment": "S03-A02-vix",
+  "slide": "s3",
+  "voice": "xiaomei",
+  "total_pieces": 5,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "ヴィックスは十四点五一と、市場に恐怖はありません。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "ただし注目すべきは、今夜のジャクソンホール講演を前に、市場が「ウォーシュ議長は語らない」に賭けていることです。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "昨日の株高は、その静けさへの信頼の上に載っています。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "その信頼が試されるのが、今日これからです。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "まずは、そのエヌビディアの決算から。",
+      "after": null,
+      "index": 4,
+      "wav": "seg_0004.wav"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "segment": "S16-B2-05",
+  "slide": "s16",
+  "voice": "xiaomei",
+  "total_pieces": 9,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "最も鋭い批判は、ベッセント長官の投資の師匠であるスタンリー・ドラケンミラー氏から飛び出しました。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "千九百九十年代のポンド売りで二人は共に戦った仲です。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "ウォールストリート・ジャーナルへの寄稿「Let the Bond Market Speak」で彼はこう書きました。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "「三十年債がクリアリングされるために五点五パーセントで取引されなければならないなら、それは危機ではない。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "請求書だ」「人為的な利回り抑制の一ベーシスポイントごとが、先送りへの補助金だ」「市場が財務省が価格を防衛していると信じれば、",
+      "after": "pause_short",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "利回りの上昇はすべて当局の決意を試すテストとなり、オペは生き残るために拡大し続けなければならない」「ファンダメンタルズに反して価格を防衛する政府は常に負ける。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "変数は降参前にいくら使うかだけだ」。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "BCAのスウィフト氏も「エフアールビーのバランスシートが関与しない限り、米政府の利回り抑制は失敗する。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "むしろ逆効果になり得る」と同調します。",
+      "after": null,
+      "index": 8,
+      "wav": "seg_0008.wav"
+    }
+  ]
+}

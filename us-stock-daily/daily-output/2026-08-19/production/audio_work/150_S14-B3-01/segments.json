@@ -1,0 +1,43 @@
+{
+  "segment": "S14-B3-01",
+  "slide": "s14",
+  "voice": "xiaomei",
+  "total_pieces": 5,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "政策サイドに目を転じます。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "前回のエフオーエムシーは、九対三で政策金利の据え置きを決めました。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "利上げを求める反対三人は、二千十六年九月以来の多さです。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "ケビン・ウォーシュ議長は「物価安定を必ず届ける」と繰り返し、ジェフリー・ガンドラック氏は「二パーセントまで下げるつもりなら、利上げが必要だ。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "債券市場の自警団がそう言っている」と指摘します。",
+      "after": null,
+      "index": 4,
+      "wav": "seg_0004.wav"
+    }
+  ]
+}

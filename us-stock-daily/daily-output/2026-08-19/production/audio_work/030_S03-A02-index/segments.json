@@ -1,0 +1,31 @@
+{
+  "segment": "S03-A02-index",
+  "slide": "s3",
+  "voice": "xiaomei",
+  "total_pieces": 3,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "昨日のニューヨーク市場を、構造ごとに見ます。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "三指数はそろって三日続落。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "エス・アンド・ピー五百が零点六九パーセント安、ナスダック総合が一点三三パーセント安、ダウ平均は零点二二パーセント安と、下げの重心は指数より業種の偏りにありました。",
+      "after": null,
+      "index": 2,
+      "wav": "seg_0002.wav"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "segment": "S05-B1-02",
+  "slide": "s5",
+  "voice": "xiaomei",
+  "total_pieces": 13,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "なぜ長期金利が上がっているのか。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "理由は三つあります。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "第一に財政です。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "七月の米連邦財政赤字は四千三百二十三億ドルと、二千二十一年三月以来の月間最高を記録。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "年初来の累計は約一点八兆ドルに達し、約四十兆ドルに膨らんだ国債への利払いは、年間約一点二兆ドルに達しています。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "第二にインフレです。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "消費者物価の前年上昇率は三点四パーセント。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "エフアールビーの二パーセント目標を大きく上回ったままです。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "第三に地政学です。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "ホルムズ海峡停戦の六十日期限が月曜に切れ、イランが延長を拒否して攻勢姿勢を示しているため、ダブリューティーアイ原油は八十四点七一ドルと続伸しています。",
+      "after": "period",
+      "index": 9,
+      "wav": "seg_0009.wav"
+    },
+    {
+      "text": "しかも重要なのは、これが米国だけの現象ではないことです。",
+      "after": "period",
+      "index": 10,
+      "wav": "seg_0010.wav"
+    },
+    {
+      "text": "日本の十年債利回りは三十年ぶりの水準、ドイツの三十年債は二千十一年以来、フランスの三十年債は二千八年以来の高値。",
+      "after": "period",
+      "index": 11,
+      "wav": "seg_0011.wav"
+    },
+    {
+      "text": "先進国全体で「財政とインフレのプレミアム」が長期金利に乗る、同名の圧力が同時に走っています。",
+      "after": null,
+      "index": 12,
+      "wav": "seg_0012.wav"
+    }
+  ]
+}

@@ -125,10 +125,10 @@ us-stock-daily/
 
 | 步骤 | 内容 | 说明 | 依赖 |
 |------|------|------|------|
-| S1 | 播音稿件转换 | 基础文字内容 → 口语化播音稿：全文口语化润色、时长估算与分段、语气/停顿标注 | T5 通过 |
-| S2 | 视觉模板设计与视觉画面输出 | 将 `spec/vision-design.md` §1〜§7 落地为可复用的视觉模板组件，并按当日内容产出各画面 | S1 |
-| S3 | Remotion 脚本编写 | 用 Remotion 编排语音与视觉画面的同步（时间轴对齐、字幕同步、动画节奏） | S1 + S2 |
-| S4 | 合成试产（延伸） | TTS 语音合成 ＋ Remotion 渲染样片，端到端验证成片 | S3 |
+| S1 | TTS 文本转换（2026-08-28 改订） | 基础文字内容 → `production/segment-map.json`（视觉页×旁白×声音切分）→ `tools/tts/prepare_tts.py` 自动转换（数字汉字读法・[pause]）。旧 broadcast-script.md 单文件方式已废止 | T5 通过 |
+| S2 | 视觉模板设计与视觉画面输出 | 终选后依「视觉设计简报」，将 `spec/vision-design.md` 落地为页面结构并取得素材（Phase 3），按当日内容产出各画面 | 内容终选后（与 S1 无依赖） |
+| S3 | Remotion 脚本编写 | 用 Remotion 编排语音与视觉画面的同步（时间轴由 `durations.json` 的实测音频时长驱动） | S1 + S2 |
+| S4 | 合成试产（延伸） | TTS 语音合成（`tools/tts/generate_audio.py`・Mac MLX）＋ Remotion 渲染样片，端到端验证成片 | S3 |
 
 > Stage S 各步骤的详细规格在试跑复盘通过后另行成文（预计置于 `phases/` 或新建 `production-pipeline/`）。
 

@@ -1,0 +1,97 @@
+{
+  "segment": "S27-B4-04",
+  "slide": "s27",
+  "voice": "xiaomei",
+  "total_pieces": 14,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "数字の細部にも読むべきものがあります。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "クラウドストライクの当期純利益は五百三十万ドルと、前年同期の七千二十万ドルの赤字から黒字転換。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "複数製品を付け外しできる「Falcon Flex」は前年比倍増以上となり、四半期で九百三十五アカウントを追加、取引額上位十件すべてがFlex経由でした。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "通期の売上指引は五十九点九〜六十点一億ドルへ引き上げられます。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "オクタの純利益は一億千六百万ドルと前年からほぼ倍増。",
+      "after": "period",
+      "index": 4,
+      "wav": "seg_0004.wav"
+    },
+    {
+      "text": "残余履行義務は四十八点六億ドルと予想四十七億ドルを上回り、約二億ドルでの脅威検出スタートアップ、パーミソの買収も閉じました。",
+      "after": "period",
+      "index": 5,
+      "wav": "seg_0005.wav"
+    },
+    {
+      "text": "マッキノンシーイーオーは「大きなレガシー企業を買って収入をかさ増しするつもりはない。",
+      "after": "period",
+      "index": 6,
+      "wav": "seg_0006.wav"
+    },
+    {
+      "text": "この規模の補完的買収を続ける」と、買収規律を強調しています。",
+      "after": "period",
+      "index": 7,
+      "wav": "seg_0007.wav"
+    },
+    {
+      "text": "セールスフォースの側にも、注目の運営数字が揃っています。",
+      "after": "period",
+      "index": 8,
+      "wav": "seg_0008.wav"
+    },
+    {
+      "text": "米退役軍人省から十六億ドルの契約を獲得し、カスタマーサービスのスタートアップ、フィンを三十六億ドルで買収。",
+      "after": "period",
+      "index": 9,
+      "wav": "seg_0009.wav"
+    },
+    {
+      "text": "閉鎖は当初予定より早い第三四半期としています。",
+      "after": "period",
+      "index": 10,
+      "wav": "seg_0010.wav"
+    },
+    {
+      "text": "エージェントフォースの予約の約半数がクレジットの追加購入である点も見逃せません。",
+      "after": "period",
+      "index": 11,
+      "wav": "seg_0011.wav"
+    },
+    {
+      "text": "使い切って追加する顧客が多いということで、定着の初期証拠です。",
+      "after": "period",
+      "index": 12,
+      "wav": "seg_0012.wav"
+    },
+    {
+      "text": "ただし統合・分析ソフトのライセンス販売には「逆風と変動」があることをCOO自身が認めており、すべてが順調なわけではありません。",
+      "after": null,
+      "index": 13,
+      "wav": "seg_0013.wav"
+    }
+  ]
+}

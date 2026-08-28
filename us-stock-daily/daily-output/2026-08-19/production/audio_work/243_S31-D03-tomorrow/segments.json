@@ -1,0 +1,43 @@
+{
+  "segment": "S31-D03-tomorrow",
+  "slide": "s31",
+  "voice": "xiaomei",
+  "total_pieces": 5,
+  "silence_config": {
+    "pause_long": 1.0,
+    "pause_short": 0.45,
+    "period": 0.35
+  },
+  "pieces": [
+    {
+      "text": "明日、八月二十日木曜日。",
+      "after": "period",
+      "index": 0,
+      "wav": "seg_0000.wav"
+    },
+    {
+      "text": "朝にウォルマートとロス・ストアーズの決算。",
+      "after": "period",
+      "index": 1,
+      "wav": "seg_0001.wav"
+    },
+    {
+      "text": "ウォルマートはイーピーエス零点七四ドル、売上千八百六十六億ドルがコンセンサスです。",
+      "after": "period",
+      "index": 2,
+      "wav": "seg_0002.wav"
+    },
+    {
+      "text": "同じく朝に新規失業保険申請件数。",
+      "after": "period",
+      "index": 3,
+      "wav": "seg_0003.wav"
+    },
+    {
+      "text": "先月の雇用減少後、労働市場の追加確認材料となります。",
+      "after": null,
+      "index": 4,
+      "wav": "seg_0004.wav"
+    }
+  ]
+}

@@ -15,6 +15,10 @@ youtube_client.json
 # Log files
 *.log
 
+# Python cache
+__pycache__/
+*.pyc
+
 # Local push debug artifacts
 push_log.txt
 push_output*.txt
