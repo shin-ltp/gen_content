@@ -7,3 +7,14 @@ node_modules/
 # Environment files
 .env
 *.env.local
+
+# OAuth / API credentials (never commit)
+youtube_client.json
+**/youtube_client.json
+
+# Log files
+*.log
+
+# Local push debug artifacts
+push_log.txt
+push_output*.txt

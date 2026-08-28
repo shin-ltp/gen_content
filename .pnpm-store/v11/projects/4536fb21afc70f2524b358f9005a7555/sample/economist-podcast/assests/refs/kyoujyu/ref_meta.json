@@ -1,8 +1,0 @@
-{
-  "source": "open.mp3",
-  "segment_start_sec": 6.618,
-  "segment_end_sec": 15.191,
-  "duration_sec": 8.572,
-  "ref_text": "グローバル クリップでは、世界を動かす 有力メディアから 今知っておくべき情報のエッセンスを厳選して配信いたします。",
-  "selection_note": "open.mp3 自动选段 6.6–15.2s (5–10s 优先、前 25s 加权)；ref_text 由 Google Speech-to-Text 转写。"
-}
