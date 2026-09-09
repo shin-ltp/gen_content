@@ -26,6 +26,10 @@ push_output*.txt
 # Daily generated episodes
 us-stock-daily/daily-output/
 
+# Exempt curated topic history from us-stock-daily/.gitignore db/ rule
+!us-stock-daily/db/
+!us-stock-daily/db/topic-history.md
+
 # Node package cache
 .npm-cache/
 

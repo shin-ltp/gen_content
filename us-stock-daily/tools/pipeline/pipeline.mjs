@@ -2,7 +2,7 @@
 // 所有子代理围绕 daily-output/<date>/pipeline.json 交接：谁产出谁写状态，编排者轮询 check。
 // 用法（仓库根执行）:
 //   node us-stock-daily/tools/pipeline/pipeline.mjs init   --date YYYY-MM-DD
-//   node ... pipeline.mjs set    --date D --id ITEM --state STATE [--note "..."] [--retry]
+//   node ... pipeline.mjs set    --date D --id ITEM --state STATE [--note "..."] [--retry] [--audit]
 //   node ... pipeline.mjs set    --date D --id ITEM --state running --repair  # skipped 恢复专用
 //   node ... pipeline.mjs get    --date D [--id ITEM]
 //   node ... pipeline.mjs status --date D
@@ -121,6 +121,39 @@ function alertProblems(st, date, problems) {
   if (changed) save(date, st);
 }
 
+// Cross-episode duplicate guard: triage may only be accepted as done when the
+// curated topic-history ledger covers the previous broadcast day. A gap in the
+// ledger makes anchor comparison impossible and is exactly how 9/8 -> 9/9
+// Apple re-airing slipped through (2026-09-09). --audit is the explicit,
+// logged bypass for repaired history or confirmed-continuation cases.
+function collectTopicHistoryRows() {
+  const histPath = path.join(US_ROOT, 'db', 'topic-history.md');
+  if (!fs.existsSync(histPath)) return [];
+  const lines = fs.readFileSync(histPath, 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/);
+  const rows = [];
+  for (const line of lines) {
+    const m = line.match(/^\|\s*(\d{4}-\d{2}-\d{2})\s*\|\s*B-([1-9])\s*\|/);
+    if (m) rows.push({ date: m[1], slot: 'B-' + m[2] });
+  }
+  return rows;
+}
+
+function checkTriagerRegistry(date) {
+  const rows = collectTopicHistoryRows();
+  const dates = [...new Set(rows.map(r => r.date))].sort().reverse();
+  const prior = dates.find(d => d < date);
+  if (!prior) return;
+  const required = ['B-1', 'B-2', 'B-3', 'B-4'];
+  const missing = required.filter(s => !rows.some(r => r.date === prior && r.slot === s));
+  if (!missing.length) return;
+  console.warn('[pipeline] topic-history が前集 ' + prior + ' を欠いています: ' + missing.join(', '));
+  console.warn('[pipeline] 主アンカー照合が不能なため重複排除は成立しません（9/8→9/9 Apple 教訓）');
+  die([
+    'triage done blocked: topic-history.md が前集 ' + prior + ' の ' + missing.join('/') + ' を欠く。',
+    '先に Phase 5 の登録を完了するか、outline.md §1 に `継続主題承認` を記録した上で --audit を付けて再実行してください。',
+  ].join(' '));
+}
+
 // 截止检查点（JST 时刻，触发即告警并顺延补齐；内容完整性不可裁剪）
 const DEADLINES = [
   { at: '08:20', need: 'triage', rule: '选题未完成 → 立即告警并加速交接；仍须确定 B1–B4 + A/C/D' },
@@ -139,7 +172,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     if (argv[i].startsWith('--')) {
       const k = argv[i].slice(2);
-      if (['note', 'retry', 'force', 'repair'].includes(k) && (i + 1 >= argv.length || argv[i + 1].startsWith('--'))) { out[k] = true; }
+      if (['note', 'retry', 'force', 'repair', 'audit'].includes(k) && (i + 1 >= argv.length || argv[i + 1].startsWith('--'))) { out[k] = true; }
       else { out[k] = argv[++i]; if (k === 'retry') out.retry = true; }
     } else out._.push(argv[i]);
   }
@@ -275,6 +308,9 @@ if (cmd === 'set') {
   if (args.repair) {
     if (it.state !== 'skipped') die('--repair 只允许用于 skipped item');
     it.attempts = (it.attempts || 0) + 1;
+  }
+  if (args.id === 'triage' && args.state === 'done' && !args.audit) {
+    checkTriagerRegistry(date);
   }
   const from = it.state;
   it.state = args.state;

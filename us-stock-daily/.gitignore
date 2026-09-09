@@ -15,8 +15,9 @@ tools/node_modules/
 tools/*.zip
 tools/longbridge.*.log
 
-# 収集履歴DB（実行時データ・コミットしない）
-db/
+# 収集履歴DB（実行時データ。topic-history.md のみ重複防止のため例外）
+db/*
+!db/topic-history.md
 
 # Gmail 浏览器持久化 profile（含 cookies/session）
 tools/collect/.gmail-profile/
