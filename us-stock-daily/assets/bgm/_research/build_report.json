@@ -1,0 +1,182 @@
+[
+  {
+    "file": "opening/open_01_inspired_30sec.mp3",
+    "src": "Inspired.mp3",
+    "dur": "30.000000",
+    "in": 0.0,
+    "out": 30.0,
+    "target": -16,
+    "pre": {
+      "measured_I": "-13.24",
+      "measured_TP": "-0.13",
+      "measured_LRA": "1.40",
+      "measured_thresh": "-23.36"
+    },
+    "bar": 2.0
+  },
+  {
+    "file": "opening/open_02_life-of-riley_31sec.mp3",
+    "src": "Life of Riley.mp3",
+    "dur": "30.588005",
+    "in": 0.0,
+    "out": 30.588,
+    "target": -16,
+    "pre": {
+      "measured_I": "-17.64",
+      "measured_TP": "-3.85",
+      "measured_LRA": "2.60",
+      "measured_thresh": "-27.78"
+    },
+    "bar": 2.3529411764705883
+  },
+  {
+    "file": "opening/open_03_news-theme_27sec.mp3",
+    "src": "News Theme.mp3",
+    "dur": "27.000000",
+    "in": 0.0,
+    "out": 27.0,
+    "target": -16,
+    "pre": {
+      "measured_I": "-12.68",
+      "measured_TP": "0.99",
+      "measured_LRA": "4.80",
+      "measured_thresh": "-23.46"
+    },
+    "bar": 1.935483870967742
+  },
+  {
+    "file": "ending/end_01_and-awaken_28sec.mp3",
+    "src": "And Awaken.mp3",
+    "dur": "28.240000",
+    "in": 0.0,
+    "out": 28.24,
+    "target": -16,
+    "pre": {
+      "measured_I": "-21.70",
+      "measured_TP": "-7.27",
+      "measured_LRA": "10.60",
+      "measured_thresh": "-32.12"
+    },
+    "bar": 0
+  },
+  {
+    "file": "ending/end_02_bright-wish_40sec.mp3",
+    "src": "Bright Wish.mp3",
+    "dur": "40.000000",
+    "in": 0.0,
+    "out": 40.0,
+    "target": -16,
+    "pre": {
+      "measured_I": "-14.45",
+      "measured_TP": "-0.13",
+      "measured_LRA": "2.60",
+      "measured_thresh": "-24.59"
+    },
+    "bar": 0
+  },
+  {
+    "file": "ending/end_03_daytime-tv-theme_46sec.mp3",
+    "src": "Daytime TV Theme.mp3",
+    "dur": "45.900000",
+    "in": 0.0,
+    "out": 45.9,
+    "target": -16,
+    "pre": {
+      "measured_I": "-13.61",
+      "measured_TP": "-0.40",
+      "measured_LRA": "10.80",
+      "measured_thresh": "-24.26"
+    },
+    "bar": 0
+  },
+  {
+    "file": "transition/tr_01_loping-sting_4sec.mp3",
+    "src": "Loping Sting.mp3",
+    "dur": "4.100000",
+    "in": 0.0,
+    "out": 4.1,
+    "target": -16,
+    "pre": {
+      "measured_I": "-8.78",
+      "measured_TP": "-0.02",
+      "measured_LRA": "0.80",
+      "measured_thresh": "-19.05"
+    },
+    "bar": 0
+  },
+  {
+    "file": "transition/tr_02_light-sting_6sec.mp3",
+    "src": "Light Sting.mp3",
+    "dur": "5.326009",
+    "in": 0.99,
+    "out": 6.316,
+    "target": -16,
+    "pre": {
+      "measured_I": "-11.67",
+      "measured_TP": "-0.04",
+      "measured_LRA": "0.60",
+      "measured_thresh": "-22.11"
+    },
+    "bar": 2.1052631578947367
+  },
+  {
+    "file": "transition/tr_03_news-sting_5sec.mp3",
+    "src": "NewsSting.mp3",
+    "dur": "4.800000",
+    "in": 0.4,
+    "out": 5.2,
+    "target": -16,
+    "pre": {
+      "measured_I": "-15.52",
+      "measured_TP": "-0.69",
+      "measured_LRA": "0.90",
+      "measured_thresh": "-25.63"
+    },
+    "bar": 1.6
+  },
+  {
+    "file": "transition/tr_04_there-it-is_6sec.mp3",
+    "src": "There It Is.mp3",
+    "dur": "6.470000",
+    "in": 0.48,
+    "out": 6.95,
+    "target": -16,
+    "pre": {
+      "measured_I": "-11.22",
+      "measured_TP": "1.27",
+      "measured_LRA": "2.70",
+      "measured_thresh": "-21.22"
+    },
+    "bar": 1.8461538461538463
+  },
+  {
+    "file": "bed/bed_01_easy-lemon_120sec.mp3",
+    "src": "Easy Lemon.mp3",
+    "dur": "120.000000",
+    "in": 0.0,
+    "out": 120.0,
+    "target": -20,
+    "pre": {
+      "measured_I": "-15.83",
+      "measured_TP": "-0.05",
+      "measured_LRA": "4.20",
+      "measured_thresh": "-26.04"
+    },
+    "bar": 2.926829268292683
+  },
+  {
+    "file": "bed/bed_02_tech-live_97sec.mp3",
+    "src": "Tech Live.mp3",
+    "dur": "96.773991",
+    "in": 0.0,
+    "out": 96.774,
+    "target": -20,
+    "pre": {
+      "measured_I": "-19.98",
+      "measured_TP": "-3.38",
+      "measured_LRA": "2.30",
+      "measured_thresh": "-30.09"
+    },
+    "bar": 1.935483870967742
+  }
+]

@@ -1,4 +1,4 @@
-# 米国株式デイリー深層分析 — 番組制作計画書
+﻿# Smart Assets米国株投資チャンネル — 番組制作計画書
 
 > バージョン: v5.1 | 更新日: 2026-08-04
 > 番組定位: 毎日30-40分 | 個人投資家向け | 長期投資＋実践的アクション指針
@@ -131,6 +131,12 @@ us-stock-daily/
 | S4 | 合成试产（延伸） | TTS 语音合成（`tools/tts/generate_audio.py`・Mac MLX）＋ Remotion 渲染样片，端到端验证成片 | S3 |
 
 > Stage S 各步骤的详细规格在试跑复盘通过后另行成文（预计置于 `phases/` 或新建 `production-pipeline/`）。
+
+> **S2 最小完了定義（2026-08-31 新設）**: `visual.html` が次を満たすとき S2 は完了とする。
+> ① 全画面が segment-map のセグメントと 1 対 1 対応 ② 全素材参照が Phase 3 Gate #3 の
+> 来历分類（fetched/cached）を満たす ③ §0.8 の A/B/C レイアウト（人物発言=split 全高・
+> 見解引用=円形・概念テーマ=split）に準拠 ④ 概念イラストがスタイルガイド（flat vector・
+> 具体的物件・抽象 3D 禁止）に適合 ⑤ check_japanese.py PASS
 
 > **进度（2026-08-05）**: **S1 播音稿件转换已完成** — 输出 `daily-output/2026-08-04/production/broadcast-script.md`
 > （基于 v2 重跑成果；实测约9,600字、含停顿约33〜35分，落于验收区间）。S2/S3 未开始。

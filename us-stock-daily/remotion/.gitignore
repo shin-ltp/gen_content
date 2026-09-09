@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# レンダリング成果物（daily-output 側にもコピーする）
+out
+
+# prepare（S3）が毎回上書きするepisode用アセット
+public/*
+!public/.gitkeep

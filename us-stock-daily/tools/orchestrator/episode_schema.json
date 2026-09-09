@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Smart Assets episode structure contract",
+  "type": "object",
+  "required": ["episode", "corners", "blocks", "fixed_slots", "visuals", "voices", "outputs"],
+  "properties": {
+    "episode": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "language": { "type": "string", "const": "ja-JP" },
+    "corners": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "order", "slide", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "kind": { "enum": ["opening", "market", "themes", "news", "events", "ending"] },
+      "order": { "type": "integer", "minimum": 1 },
+          "slide": { "type": "string", "pattern": "^s[0-9]+$" },
+          "title": { "type": "string" },
+          "optional": { "type": "boolean" }
+        }
+      }
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "corner", "order", "slide"],
+        "properties": {
+          "id": { "type": "string" },
+          "corner": { "type": "string" },
+          "order": { "type": "integer", "minimum": 0 },
+          "slide": { "type": "string", "pattern": "^s[0-9]+$" },
+          "cue": { "type": "string" },
+          "voice": { "type": "string" },
+          "source": { "type": "string" },
+          "title": { "type": "string" }
+        }
+      }
+    },
+    "fixed_slots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "corner", "order", "slide", "voice", "source"],
+        "properties": {
+          "id": { "type": "string" },
+          "corner": { "type": "string" },
+          "order": { "type": "integer" },
+          "slide": { "type": "string" },
+          "voice": { "type": "string" },
+          "source": { "enum": ["assets/audio/fixed/opening.wav", "assets/audio/fixed/ending.wav"] },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    "visuals": {
+      "type": "object",
+      "required": ["html", "slide_id_pattern"],
+      "properties": {
+        "html": { "const": "visual.html" },
+        "slide_id_pattern": { "const": "^s[0-9]+$" }
+      }
+    },
+    "voices": {
+      "type": "object",
+      "required": ["default"],
+      "properties": { "default": { "type": "string" } }
+    },
+    "outputs": {
+      "type": "object",
+      "required": ["segment_map", "tts_dir", "durations", "remotion_input"],
+      "properties": {
+        "segment_map": { "const": "production/segment-map.json" },
+        "tts_dir": { "type": "string" },
+        "durations": { "const": "production/audio/durations.json" },
+        "remotion_input": { "type": "string" }
+      }
+    }
+  }
+}

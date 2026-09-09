@@ -51,6 +51,17 @@ _GLOSSARY_PAIRS = [
     ("AI", "エーアイ"),
     ("K型", "ケー型"),
     ("Meta", "メタ"),
+    ("Smart Assets", "スマート・アセット"),
+    # Avoid the accidental kome-reading for abbreviated country prefixes.
+    ("米国", "べいこく"),
+    ("米財務省", "べいざいむしょう"),
+    ("米軍", "べいぐん"),
+    ("米クリーブランド", "べいクリーブランド"),
+    # Gold is kin, not kane; a following particle disambiguates standalone
+    # 金 without touching 金利, 金曜, 資金, 年金, etc.
+    ("金は", "きんは"),
+    # Financial narration reads 市場 as shijo, not ichiba.
+    ("市場", "シジョウ"),
 ]
 _GLOSSARY = sorted(_GLOSSARY_PAIRS, key=lambda kv: -len(kv[0]))
 

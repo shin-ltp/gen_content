@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPosts } from '../lib/ghost.js';
+
+const { posts, placeholder } = await getPosts({ limit: 20 });
+---
+<BaseLayout title="Smart Assets News">
+  {placeholder && <p>Ghost 未接続（GHOST_CONTENT_API_URL / KEY を .env に設定してください）</p>}
+  <ul>
+    {posts.map((post) => (
+      <li>
+        <a href={`/post/${post.slug}`}>{post.title}</a>
+        <time>{new Date(post.published_at).toLocaleDateString('ja-JP')}</time>
+        {post.excerpt && <p set:html={post.excerpt} />}
+      </li>
+    ))}
+  </ul>
+</BaseLayout>

@@ -1,4 +1,4 @@
-# バリュエーション方法論 ＋ アクション指針規範
+﻿# バリュエーション方法論 ＋ アクション指針規範
 
 > 旧 PLAN.md 6.3／6.4。B（メインテーマ）で個別株・セクターを扱う際の中核。業界別バリュエーション早見表の詳細は [../data-sources/sector-valuation-guide.md](../data-sources/sector-valuation-guide.md)。
 

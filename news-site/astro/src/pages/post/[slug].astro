@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPosts, getPost } from '../../lib/ghost.js';
+
+export async function getStaticPaths() {
+  const { posts } = await getPosts({ limit: 50 });
+  return posts.map((post) => ({ params: { slug: post.slug } }));
+}
+
+const { slug } = Astro.params;
+const post = await getPost(slug);
+---
+<BaseLayout title={post?.title ?? 'Not Found'}>
+  {post ? (
+    <article>
+      <h1>{post.title}</h1>
+      <time>{new Date(post.published_at).toLocaleDateString('ja-JP')}</time>
+      <div set:html={post.html} />
+    </article>
+  ) : (
+    <p>記事が見つかりません。</p>
+  )}
+</BaseLayout>

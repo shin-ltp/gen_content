@@ -1,0 +1,12 @@
+﻿# dependencies / build
+node_modules/
+dist/
+
+# env (API keys)
+.env
+.env.local
+!.env.example
+
+# pipeline output (generated daily)
+content-pipeline/output/*
+!content-pipeline/output/.gitkeep

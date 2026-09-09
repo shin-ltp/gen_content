@@ -1,4 +1,4 @@
-# 情報源一覧とツールチェーン
+﻿# 情報源一覧とツールチェーン
 
 > 旧 PLAN.md 第七章。Phase 0（収集）の核心依存先と、インストール済みツール。アカウント登録状況は [account-checklist.md](./account-checklist.md)。
 
@@ -55,7 +55,7 @@
 > - ログイン方法: `longbridge auth login`（Device Flow — 表示される URL をブラウザで開き Longbridge アカウントで承認）。
 >   トークンは `~/.longbridge/openapi/tokens/` に保存され以後自動利用。エージェント完結型は
 >   `https://open.longbridge.com/connect` で発行したコードを `longbridge auth login --auth-code <CODE>`。
-> - 前提: **Longbridge 証券アカウント**が必要（US 口座は longbridge.com 側で発行。中国大陆からの場合は `LONGBRIDGE_REGION=global`）。
+> - 前提: **Longbridge 証券アカウント**が必要（US口座は longbridge.com 側で発行。中国本土からの場合は `LONGBRIDGE_REGION=global`）。
 > - **状態: ✅ ログイン済み・検証済み（2026-08-04）**。検証済みコマンド:
 >   `quote`（個別株＋指数 `.SPX.US`/`.IXIC.US`/`.DJI.US`/`.VIX.US`、プレ/アフター/オーバーナイト各セッション付き）、
 >   `kline`（日足 OHLCV）、`exchange-rate`（為替マトリクス）、`market-temp`（市場温度・バリュエーション・センチメント 0-100）。
@@ -72,7 +72,7 @@
 >   ホワイトリスト5エンジン: google / bing / bing news / duckduckgo / duckduckgo news
 >   （2026-08-06 家庭 IP で再検証済み、`language=ja-JP` の日文検索も可）。
 >   ⚠ 履歴: GCP データセンター IP（2026-08-05）では google系空結果・ddg CAPTCHA で bing 系のみ可だった。
->   出口 IP が変わったら README「引擎可用性重测」の手順で再検証すること。
+>   出口 IP が変わったら README「エンジン可用性の再検証」の手順で再検証すること。
 > - フォールバック: Codex ランタイム内蔵 `web_search`（要約＋出所を返す。約3クエリ/回のレート制限あり。生URLの網羅性に難）
 > - フォールバック時は Gate #0 の数量基準（30件）への到達性が下がるため、6カテゴリのカバレッジと
 >   核心話題の深度を優先する。詳細: 初回試跑報告 `../daily-output/2026-08-04/review/trial-report.md` §二 P1/P3。

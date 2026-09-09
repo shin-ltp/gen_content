@@ -1,0 +1,26 @@
+---
+const { title = 'Smart Assets News' } = Astro.props;
+---
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <a href="/">Smart Assets News</a>
+      <nav>
+        <a href="/">最新記事</a>
+        <a href="/membership">メンバーシップ</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p>※当サイトは学習目的の情報提供であり、投資助言ではありません。</p>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+news.example.com {
+    reverse_proxy ghost:2368
+    header {
+        Strict-Transport-Security "max-age=31536000"
+        X-Content-Type-Options "nosniff"
+    }
+}

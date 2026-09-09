@@ -1,4 +1,4 @@
-# ブランドアセットキャッシュ一覧
+﻿# ブランドアセットキャッシュ一覧
 
 > 企業・メディア画像（logo／building）の全日共有キャッシュ。[../../infra/brand-asset-cache.md](../../infra/brand-asset-cache.md) 参照。
 > **原則**: 必要になった時、まずここを確認 → あれば再利用（再取得しない）／ なければ検索DL → 保存 → **下表に必ず1行追記**する。
@@ -7,8 +7,8 @@
 
 | 種類 | 内容 | 使う場面 |
 |---|---|---|
-| **logo** | シンプルなロゴ（背景透過 PNG／SVG）。列挙表示用 | 多品牌列挙（目玉予告・ニュース速報・一覧） |
-| **building** | 本社大楼・标志性建築物など社名・媒体名が入った実写写真。単独表示用 | 1社/1媒体のクローズアップ（個別株深層分析等） |
+| **logo** | シンプルなロゴ（背景透過 PNG／SVG）。列挙表示用 | 多ブランド列挙（目玉予告・ニュース速報・一覧） |
+| **building** | 本社ビル・代表的な建築物など社名・媒体名が入った実写写真。単独表示用 | 1社/1媒体のクローズアップ（個別株深層分析等） |
 
 ## 取得フロー
 
@@ -18,7 +18,7 @@
    - なし → 手順2へ
 2. 検索・ダウンロード
    - logo: 公式IR／プレスキット／ブランドアセット → Wikipedia → ロゴ検索（背景透過PNG/SVG優先）
-   - building: 公式IR／ニュースルームの高解像度本社写真 → Wikipedia（インフォボックス画像）→ 画像検索（「{社名} headquarters」）。社名の入った标志性建築物を優先
+   - building: 公式IR／ニュースルームの高解像度本社写真 → Wikipedia（インフォボックス画像）→ 画像検索（「{社名} headquarters」）。社名の入った代表的な建築物を優先
 3. 所定パスへ保存（logo=背景透過PNG/SVG、building=JPG写真）
 4. 下表に1行追記（slug / 種別 / 種類 / パス / 取得元URL / 取得日 / 形式 / 使用条件）
 5. 保存したファイルを使用
@@ -65,5 +65,6 @@
 | capital-curve | concept | concept | daily-output/2026-08-19/assets/concepts/capital-curve.png | tools/imagegen: qwen-image-3.0-pro | 2026-08-23 | PNG | 資本曲線の概念図 1600x900（各日保管） |
 | k-shaped-consumption | concept | concept | daily-output/2026-08-19/assets/concepts/k-shaped-consumption.png | tools/imagegen: qwen-image-3.0-pro | 2026-08-23 | PNG | K型消費の概念図 1600x900（各日保管） |
 | opening-visual | concept | concept | daily-output/2026-08-19/assets/concepts/opening-visual.png | tools/imagegen: qwen-image-3.0-pro | 2026-08-23 | PNG | オープニングテーマ画像 1600x900（各日保管） |
+| opening-visual-fixed | template | template | template/opening-visual.png | daily-output/2026-08-19/assets/concepts/opening-visual.png（qwen-image 生成） | 2026-09-01 | PNG | **S0 オープニング固定背景**（ウォール街の夜景＋K線光軌）。全エピソード共通・差し替え禁止。Phase 3 で各日 assets/concepts/ へコピーして `<img src="assets/concepts/opening-visual.png">` で参照 |
 
 <!-- 上の例行を参考に、取得の都度1行ずつ追記してください。追記なきキャッシュ追加は禁止。 -->

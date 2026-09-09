@@ -31,12 +31,21 @@ const GMAIL_APP_PASS = ENV.GMAIL_APP_PASSWORD || '';
 
 // 各订阅源的检索条件（IMAP 的 FROM 匹配对某些发件人是通配；SINCE 取近 N 天）
 const SEARCH_DAYS = Number(process.env.EMAIL_SEARCH_DAYS || '7');
+const MAX_PER_NL = Number(process.env.EMAIL_MAX_PER_NL || '4'); // 1runあたりの各源最大取得通数
 const NEWSLETTERS = [
   { id: 'bloomberg', name: 'Bloomberg Five Things', from: 'Bloomberg', minBody: 100, source: 'Bloomberg' },
   { id: 'wsj', name: 'WSJ Markets A.M.', from: '@wsj.com', minBody: 100, source: 'WSJ' },
   { id: 'yahoo', name: 'Yahoo Finance Morning Brief', from: 'Yahoo Finance', minBody: 100, source: 'Yahoo Finance' },
   { id: 'reuters', name: 'Reuters Morning Wire', from: 'Reuters', minBody: 100, source: 'Reuters' },
-  { id: 'semianalysis', name: 'SemiAnalysis Newsletter', from: 'Semianalysis', minBody: 100, source: 'SemiAnalysis' }
+  { id: 'semianalysis', name: 'SemiAnalysis Newsletter', from: 'Semianalysis', minBody: 100, source: 'SemiAnalysis' },
+  // 2026-09-02 メールボックス実測監査で判明した追加分（一覧外だった購読源）
+  { id: 'reuters-ja', name: 'Reuters 日本語速報メール', from: 'newsletters@email.reuters.com', minBody: 100, source: 'Reuters JP' },
+  { id: 'reuters-tradingday', name: 'Reuters Trading Day', from: 'tradingday@thomsonreuters.com', minBody: 100, source: 'Reuters' },
+  { id: 'morningbid-us', name: 'Reuters Morning Bid U.S.', from: 'thomsonreuters@mail.sailthru.com', minBody: 100, source: 'Reuters' },
+  { id: 'macromicro', name: 'MacroMicro 全球マクロ週報', from: 'web@mg.macromicro.me', minBody: 100, source: 'MacroMicro' },
+  { id: 'twelve-oclock', name: '12 O\'Clock Stock', from: 'tocs-newsletter-c1c13e@mail.beehiiv.com', minBody: 100, source: '12 O\'Clock Stock' },
+  { id: 'tipranks', name: 'TipRanks Daily', from: 'info@tipranks.com', minBody: 100, source: 'TipRanks' },
+  { id: 'wallstreetzen', name: 'WallStreetZen Ideas', from: 'daily@wallstreetzen.com', minBody: 100, source: 'WallStreetZen' }
 ];
 
 const IMAP_OPTS = { host: 'imap.gmail.com', port: 993, secure: true, auth: { user: GMAIL_USER, pass: GMAIL_APP_PASS }, logger: false };
@@ -109,17 +118,31 @@ function decodeSubject(subj) {
 }
 
 // imapflow 的 fetchOne 拿 source + envelope
-async function fetchLatest(client, from, since) {
-  const lock = await client.getMailboxLock('INBOX');
-  try {
-    const uids = await client.search({ from, since }, { uid: true });
-    if (!uids.length) return null;
-    const uid = uids[uids.length - 1];
-    const msg = await client.fetchOne(uid, { source: true, envelope: true, uid: true }, { uid: true });
-    return { uid, envelope: msg.envelope, source: msg.source };
-  } finally {
-    lock.release();
+async function fetchNewFor(client, nl, since, seen) {
+  const uids = await client.search({ from: nl.from, since }, { uid: true });
+  if (!uids.length) return [];
+  const out = [];
+  for (const uid of [...uids].sort((a, b) => b - a)) { // 新着から
+    if (out.length >= MAX_PER_NL) break;
+    const sid = 'u' + uid; // uid ベース重複排除（1日1通制限を撤廃）
+    if (seenHas(seen, 'email-imap-' + nl.id, sid)) continue;
+    if (seenHas(seen, 'email-imap-uid-global', sid)) continue; // 別源ワイルドカード重複を防止
+    const envMsg = await client.fetchOne(uid, { envelope: true }, { uid: true });
+    const env = envMsg.envelope || {};
+    if (nl.subjectContains && !String(env.subject || '').includes(nl.subjectContains)) continue;
+    const full = await client.fetchOne(uid, { source: true }, { uid: true });
+    out.push({ uid, envelope: env, source: full.source });
   }
+  return out;
+}
+
+// envelope date → JST の日付（pub_date 用。収集日ハードコードによる日付ズレを防止）
+function jstDate(d, fallback) {
+  try {
+    const ms = (d instanceof Date ? d : new Date(d)).getTime();
+    if (!isFinite(ms)) throw new Error('bad date');
+    return new Date(ms + 9 * 3600000).toISOString().slice(0, 10);
+  } catch { return fallback; }
 }
 
 async function run() {
@@ -138,45 +161,50 @@ async function run() {
   const client = new ImapFlow(IMAP_OPTS);
   try {
     await client.connect();
-    console.log('[email-imap] IMAP 接続OK');
-    const since = new Date(Date.now() - SEARCH_DAYS * 86400000);
-    for (const nl of NEWSLETTERS) {
-      const skey = 'email-imap-' + nl.id;
-      const sid = today + '-' + nl.id;
-      if (seenHas(seen, skey, sid)) { already++; console.log('[email-imap] ' + nl.id + ': 今日分取得済み（スキップ）'); continue; }
-      console.log('[email-imap] 検索: ' + nl.name + ' (from=' + nl.from + ')');
-      let res = null;
-      try {
-        res = await fetchLatest(client, nl.from, since);
-      } catch (e) {
-        console.error('[email-imap] ' + nl.id + ' 検索失敗: ' + (e && e.message || e).toString().slice(0, 120));
-        failed++; continue;
-      }
-      if (!res) { console.log('[email-imap] ' + nl.id + ': 該当メールなし（' + SEARCH_DAYS + '日以内）'); failed++; continue; }
+  console.log('[email-imap] IMAP 接続OK');
+  const since = new Date(Date.now() - SEARCH_DAYS * 86400000);
+  const lock = await client.getMailboxLock('INBOX');
+  for (const nl of NEWSLETTERS) {
+    console.log('[email-imap] 検索: ' + nl.name + ' (from=' + nl.from + ')');
+    let items = [];
+    try {
+      items = await fetchNewFor(client, nl, since, seen);
+    } catch (e) {
+      console.error('[email-imap] ' + nl.id + ' 検索失敗: ' + (e && e.message || e).toString().slice(0, 120));
+      failed++; continue;
+    }
+    if (!items.length) { already++; console.log('[email-imap] ' + nl.id + ': 新着なし'); continue; }
+    for (const res of items) {
       const body = extractBodyText(res.source);
-      const title = decodeSubject(res.envelope && res.envelope.subject) || nl.name + ' (' + today + ')';
+      const pubDate = jstDate(res.envelope && res.envelope.date, today);
+      const title = decodeSubject(res.envelope && res.envelope.subject) || nl.name + ' (' + pubDate + ')';
       if (!body || body.length < nl.minBody) {
-        console.log('[email-imap] ' + nl.id + ': 本文抽出失敗（body=' + (body || '').length + '）');
+        console.log('[email-imap] ' + nl.id + ': 本文抽出失敗（body=' + (body || '').length + '）uid=' + res.uid);
         failed++; continue;
       }
       const meta = {
-        id: 'NWS-' + today.replace(/-/g, '') + '-E' + String(n + 1).padStart(3, '0'),
+        id: 'NWS-' + pubDate.replace(/-/g, '') + '-E' + String(n + 1).padStart(3, '0'),
         category: 'news', ticker: '',
         title: title.slice(0, 200),
         source: nl.source + ' Newsletter（Gmail IMAP）', source_type: 'newsletter',
         url: 'gmail-imap://' + nl.id + '/' + res.uid, relevance: 'us-stock',
         collected_at: new Date().toISOString().slice(0, 16),
         collector: 'collect-email-imap', priority: 'TBD',
-        newsletter_id: nl.id, pub_date: today,
+        newsletter_id: nl.id, pub_date: pubDate,
         assets_needed: '[]', assets_status: 'none', adopted: false, status: 'raw'
       };
       const md = frontmatter(meta) + '\n\n## Body\n\n' + body.slice(0, 8000) + '\n';
-      atomicWrite(path.join(OUT, 'EMAIL-' + nl.id + '-' + today + '.md'), md);
-      seenAdd(seen, skey, sid, { name: nl.name, title: title.slice(0, 80), body_chars: body.length });
+      let fname = 'EMAIL-' + nl.id + '-' + pubDate + '.md';
+      if (fs.existsSync(path.join(OUT, fname))) fname = 'EMAIL-' + nl.id + '-' + pubDate + '-u' + res.uid + '.md';
+      atomicWrite(path.join(OUT, fname), md);
+      seenAdd(seen, 'email-imap-' + nl.id, 'u' + res.uid, { name: nl.name, title: title.slice(0, 80), body_chars: body.length, pub_date: pubDate });
+      seenAdd(seen, 'email-imap-uid-global', 'u' + res.uid, { first_source: nl.id });
       n++;
-      console.log('[email-imap] [' + n + '] ' + nl.id + ': ' + body.length + '字 | ' + title.slice(0, 50));
+      console.log('[email-imap] [' + n + '] ' + nl.id + ' (' + pubDate + '): ' + body.length + '字 | ' + title.slice(0, 50));
     }
-  } catch (e) {
+  }
+  lock.release();
+} catch (e) {
     console.error('[email-imap] 接続/実行エラー: ' + (e && e.message || e).toString().slice(0, 200));
     try { await client.logout(); } catch {}
     process.exit(1);

@@ -1,12 +1,12 @@
-{
+﻿{
   "_meta": {
-    "description": "机器可读的信源登记簿。收集器遍历本文件逐源抓取。",
+    "description": "機械可読な情報源登録簿。コレクターは本ファイルを巡回して各情報源を取得する。",
     "version": "1.0",
     "updated": "2026-08-07",
     "status_legend": {
-      "ready": "已验证可抓取",
-      "todo": "待实现/验证",
-      "pending-credentials": "需要凭据才能接入"
+      "ready": "取得検証済み",
+      "todo": "実装・検証待ち",
+      "pending-credentials": "認証情報の登録が必要"
     },
     "collectors": {
       "collect-wscn.mjs": "wallstreetcn - ready",
@@ -22,7 +22,7 @@
   "sources": [
     {
       "id": "wallstreetcn",
-      "name": "华尔街见闻",
+      "name": "WallstreetCN",
       "url": "https://wallstreetcn.com/news/us-stock",
       "type": "api",
       "access": {
@@ -30,10 +30,10 @@
         "list_endpoint": "https://api-one-wscn.awtmt.com/apiv1/content/articles?channel=us-stock&limit=50",
         "detail_url_template": "https://wallstreetcn.com/articles/{id}",
         "ssr": true,
-        "notes": "列表API返回标题/摘要/来源/股票代码；文章页SSR内嵌全文JSON"
+        "notes": "リストAPIはタイトル・要約・出所・銘柄コードを返す。記事ページはSSRで全文JSONを内包する"
       },
       "language": "zh",
-      "filter": "us-stock/AI/半导体/宏观；引用大投行报告的优先",
+      "filter": "us-stock／AI／半導体／マクロ。大手投資銀行レポートの引用を優先",
       "category_mapping": [
         "RES",
         "STK",
@@ -46,16 +46,16 @@
     },
     {
       "id": "36kr",
-      "name": "36氪",
+      "name": "36Kr",
       "url": "https://36kr.com",
       "type": "browser",
       "access": {
         "method": "agent-browser-headless",
         "list_url": "https://36kr.com/newsflashes",
-        "notes": "JS渲染站，agent-browser headless抓取"
+        "notes": "JSレンダリングサイト。agent-browser headlessで取得"
       },
       "language": "zh",
-      "filter": "AI/软件/半导体/Mag7/OpenAI科技产业深層；一般速报除く",
+      "filter": "AI／ソフトウェア／半導体／Mag7／OpenAI関連のテクノロジー産業深層。一般速報は除く",
       "category_mapping": [
         "STK",
         "RES"
@@ -76,7 +76,7 @@
         ]
       },
       "language": "en",
-      "filter": "美股相关实时新闻",
+      "filter": "米国株関連のリアルタイムニュース",
       "category_mapping": [
         "NWS",
         "ERN",
@@ -99,7 +99,7 @@
         "notes": "business/technology feeds"
       },
       "language": "en",
-      "filter": "美股实时新闻",
+      "filter": "米国株リアルタイムニュース",
       "category_mapping": [
         "NWS",
         "MAC",
@@ -115,10 +115,10 @@
       "type": "html",
       "access": {
         "method": "http",
-        "notes": "HTTP 200可访问；含PDF研究报告"
+        "notes": "HTTP 200でアクセス可。PDF調査レポートを含む"
       },
       "language": "en",
-      "filter": "AI/科技/宏观/资产配置/数据中心/半导体",
+      "filter": "AI／テクノロジー／マクロ／資産配分／データセンター／半導体",
       "category_mapping": [
         "RES",
         "MAC"
@@ -133,10 +133,10 @@
       "type": "html",
       "access": {
         "method": "agent-browser-headless",
-        "notes": "JS渲染"
+        "notes": "JSレンダリング"
       },
       "language": "en",
-      "filter": "AI经济/市场趋势/科技",
+      "filter": "AI経済／市場トレンド／テクノロジー",
       "category_mapping": [
         "RES",
         "MAC"
@@ -151,10 +151,10 @@
       "type": "html",
       "access": {
         "method": "agent-browser-headless",
-        "notes": "JS渲染"
+        "notes": "JSレンダリング"
       },
       "language": "en",
-      "filter": "全球研究/市场动态/科技",
+      "filter": "グローバル調査／市場動向／テクノロジー",
       "category_mapping": [
         "RES",
         "MAC"
@@ -169,10 +169,10 @@
       "type": "pdf",
       "access": {
         "method": "agent-browser-headless",
-        "notes": "PDF下载+抽取"
+        "notes": "PDFダウンロード＋抽出"
       },
       "language": "en",
-      "filter": "投资展望/每周评论/Mega Forces",
+      "filter": "投資展望／週次コメント／Mega Forces",
       "category_mapping": [
         "RES",
         "MAC"
@@ -182,15 +182,15 @@
     },
     {
       "id": "newsletter-bloomberg",
-      "name": "Bloomberg Five Things 晨报",
+      "name": "Bloomberg Five Things 朝報",
       "url": "mailto",
       "type": "email",
       "access": {
         "method": "agent-browser-headless",
-        "notes": "邮件在用户邮箱，无头浏览器登录抓取，凭据待填.env"
+        "notes": "メールはユーザーのメールボックス内。ヘッドレスブラウザでログイン取得し、認証情報は.envに追記予定",
       },
       "language": "en/ja",
-      "filter": "每日精選5条",
+      "filter": "毎日の厳選5本",
       "category_mapping": [
         "NWS",
         "MAC"
@@ -207,7 +207,7 @@
         "method": "agent-browser-headless"
       },
       "language": "en",
-      "filter": "市场早报+AI商业",
+      "filter": "市場朝報＋AIビジネス",
       "category_mapping": [
         "NWS",
         "STK"
@@ -224,7 +224,7 @@
         "method": "agent-browser-headless"
       },
       "language": "en",
-      "filter": "市场早报",
+      "filter": "市場朝報",
       "category_mapping": [
         "NWS",
         "MAC"
@@ -241,7 +241,7 @@
         "method": "agent-browser-headless"
       },
       "language": "en",
-      "filter": "晨间要闻",
+      "filter": "朝の主要ニュース",
       "category_mapping": [
         "NWS"
       ],
@@ -257,7 +257,7 @@
         "method": "agent-browser-headless"
       },
       "language": "en",
-      "filter": "半导体/科技深層；机构级分析",
+      "filter": "半導体／テクノロジー深層。機関投資家レベルの分析",
       "category_mapping": [
         "RES",
         "STK"
@@ -273,10 +273,10 @@
       "access": {
         "method": "cli",
         "binary": "tools/bin/longbridge.exe",
-        "notes": "已登录验证。quote/kline/financial-report/news/filing/macrodata"
+        "notes": "ログイン検証済み。quote/kline/financial-report/news/filing/macrodata"
       },
       "language": "n/a",
-      "filter": "指数/个股/汇率/财报/评级一次数据",
+      "filter": "指数・個別株・為替・決算・レーティングの一次データ",
       "category_mapping": [
         "MKT",
         "ERN",
@@ -287,16 +287,16 @@
     },
     {
       "id": "searxng-local",
-      "name": "SearXNG (本地，查询补充)",
+      "name": "SearXNG（ローカル・補助検索）",
       "url": "http://127.0.0.1:8888",
       "type": "search",
       "access": {
         "method": "http",
         "endpoint": "http://127.0.0.1:8888/search?format=json",
-        "notes": "信源驱动收集的补充：事件追踪/交叉验证/补漏"
+        "notes": "情報源駆動収集の補助。イベント追跡・クロスチェック・取りこぼし補完",
       },
       "language": "multi",
-      "filter": "按需查询",
+      "filter": "必要時のクエリ",
       "category_mapping": [
         "MKT",
         "MAC",

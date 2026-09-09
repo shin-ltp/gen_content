@@ -1,0 +1,27 @@
+{
+  "name": "us-stock-daily-remotion",
+  "version": "1.0.0",
+  "description": "Smart Assets 米国株投資チャンネル — 音声駆動の番組レンダリング (Remotion)",
+  "repository": {},
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.427",
+    "@remotion/transitions": "^4.0.427",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.427"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render Episode",
+    "still": "remotion still Episode",
+    "typecheck": "tsc --noEmit",
+    "upgrade": "remotion upgrade"
+  }
+}

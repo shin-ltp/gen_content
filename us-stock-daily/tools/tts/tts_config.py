@@ -7,9 +7,8 @@ from pathlib import Path
 TOOLS_TTS_DIR = Path(__file__).resolve().parent
 US_STOCK_DAILY = TOOLS_TTS_DIR.parent.parent
 
-# Voice reference audio shipped with the economist-podcast sample project.
-SAMPLE_ASSETS = US_STOCK_DAILY / "tools" / "sample" / "economist-podcast" / "assests"
-REFS_ROOT = SAMPLE_ASSETS / "refs"
+# Voice reference audio lives with the show's production assets.
+REFS_ROOT = US_STOCK_DAILY / "assets" / "cast_refs"
 DEFAULT_VOICES = ("xiaomei", "kyoujyu")
 
 # Remote Fish Audio worker on the Mac (Apple Silicon MLX).

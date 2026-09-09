@@ -22,3 +22,27 @@ __pycache__/
 # Local push debug artifacts
 push_log.txt
 push_output*.txt
+
+# Daily generated episodes
+us-stock-daily/daily-output/
+
+# Node package cache
+.npm-cache/
+
+# Local WSL/ROCm runtime trees and model checkout
+tools/_*
+tools/pciids.h
+tools/fishaudio-s2-pro/fish-speech/
+tools/fishaudio-s2-pro/rocm-env/
+tools/fishaudio-s2-pro/rocm-env2/
+tools/fishaudio-s2-pro/out/
+
+# Generated episode media
+us-stock-daily/assets/audio/
+
+# One-off analysis / visual-split scratch files
+_analysis_handoff.py
+visual_0904_*.html
+
+# App data accidentally created inside remotion/
+us-stock-daily/remotion/Tencent/

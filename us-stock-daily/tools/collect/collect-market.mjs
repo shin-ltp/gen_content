@@ -22,6 +22,17 @@ const SYMBOLS = {
   GOLD: { sym: 'GC=F', name: '金先物', cat: 'MKT', note: 'コモディティ' },
   WTI: { sym: 'CL=F', name: 'WTI原油先物', cat: 'MKT', note: 'コモディティ' },
   BTC: { sym: 'BTC-USD', name: 'ビットコイン', cat: 'MKT', note: '暗号資産' },
+  XLK: { sym: 'XLK', name: 'テクノロジーセクター', cat: 'SEC', note: 'セクターETF' },
+  XLY: { sym: 'XLY', name: '一般消費財セクター', cat: 'SEC', note: 'セクターETF' },
+  XLC: { sym: 'XLC', name: '通信サービスセクター', cat: 'SEC', note: 'セクターETF' },
+  XLF: { sym: 'XLF', name: '金融セクター', cat: 'SEC', note: 'セクターETF' },
+  XLE: { sym: 'XLE', name: 'エネルギーセクター', cat: 'SEC', note: 'セクターETF' },
+  XLV: { sym: 'XLV', name: 'ヘルスケアセクター', cat: 'SEC', note: 'セクターETF' },
+  XLI: { sym: 'XLI', name: '資本材セクター', cat: 'SEC', note: 'セクターETF' },
+  XLP: { sym: 'XLP', name: '生活必需品セクター', cat: 'SEC', note: 'セクターETF' },
+  XLU: { sym: 'XLU', name: '公益セクター', cat: 'SEC', note: 'セクターETF' },
+  XLB: { sym: 'XLB', name: '素材セクター', cat: 'SEC', note: 'セクターETF' },
+  XLRE: { sym: 'XLRE', name: '不動産セクター', cat: 'SEC', note: 'セクターETF' },
   NVDA: { sym: 'NVDA', name: 'NVDA', cat: 'STK', note: '個別株' },
   AMD: { sym: 'AMD', name: 'AMD', cat: 'STK', note: '個別株' },
   TSLA: { sym: 'TSLA', name: 'TSLA', cat: 'STK', note: '個別株' },
@@ -82,6 +93,7 @@ async function run() {
   const mktRows = rows.filter(r => r.cat === 'MKT');
   const macRows = rows.filter(r => r.cat === 'MAC');
   const stkRows = rows.filter(r => r.cat === 'STK');
+  const secRows = rows.filter(r => r.cat === 'SEC');
 
   // 収集器ごとに固有の連番空間を持つ。STK は 36kr(KRxxx) と衝突しないよう
   // Yahoo 由来であることを示す YHxxx を付ける
@@ -147,6 +159,26 @@ async function run() {
     const body = r.name + ' の終値は ' + formatVal(r.q) + '（' + pctStr(r.q.chgPct) + '）。' +
       '前日比 ' + (r.q.chgPct >= 0 ? '上昇' : '下落') + '。当日高値 ' + (r.q.dayHigh || '—') + '、安値 ' + (r.q.dayLow || '—') + '。\n';
     writeMaterial(meta, body);
+  }
+
+  // セクターETF を SECTOR 素材として出力（A-02 市況総括の値上/値下セクターリスト用・2026-08-31）
+  if (secRows.length) {
+    const sorted = [...secRows].sort((a, b) => (b.q.chgPct || 0) - (a.q.chgPct || 0));
+    const secLines = sorted.map(r => '| ' + r.name + ' | ' + r.q.symbol + ' | ' + pctStr(r.q.chgPct) + ' |');
+    const secBody = '# ' + today + ' セクター騰落（SPDR 11セクターETF・終値基準）\n\n' +
+      '| セクター | ETF | 前日比 |\n|------|------|------|\n' + secLines.join('\n') + '\n\n' +
+      '> 出所: Yahoo Finance 公共API | 収集時刻: ' + new Date().toISOString().slice(0, 16) + '\n';
+    const secMeta = {
+      id: idFor('SEC'), category: 'market', ticker: '',
+      title: today + ' セクター騰落スナップ（値上がり/値下がり筆頭）',
+      source: 'Yahoo Finance', source_type: 'data',
+      url: 'https://finance.yahoo.com/sectors/', relevance: 'us-stock',
+      collected_at: new Date().toISOString().slice(0, 16),
+      collector: 'collect-market', priority: 'TBD',
+      pub_date: today, assets_needed: '[]', assets_status: 'none', adopted: false, status: 'verified',
+      key_data: sorted.map(r => r.name + ' ' + pctStr(r.q.chgPct))
+    };
+    writeMaterial(secMeta, secBody);
   }
 
   console.log('\n=== market: ' + ok + ' 銘柄 (失敗 ' + fail + ') -> ' + OUT + ' ===');
