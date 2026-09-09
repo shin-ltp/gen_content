@@ -9,6 +9,8 @@
 //   node ... pipeline.mjs check  --date D        # 看门狗：发现 stale/failed → exit 2
 //   node ... pipeline.mjs deadlines --date D     # 截止检查点判定（结合当前时刻）
 //   node ... pipeline.mjs alive  --date D        # 编排者心跳
+//   node ... pipeline.mjs engine --date D --state starting|ready|failed [--note "..."]
+//   node ... pipeline.mjs resume --date D        # 断点恢复唯一入口（只读）
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -161,12 +163,77 @@ if (cmd === 'init') {
   }
   const items = {};
   for (const [id, stage] of ITEM_DEFS) items[id] = { id, stage, state: 'pending', attempts: 0, updated: new Date().toISOString(), note: '' };
-  save(date, { date, created: new Date().toISOString(), updated: '', last_alive: new Date().toISOString(), items, events: [] });
+  const engine = { state: 'unknown', updated: new Date().toISOString(), note: '' };
+  save(date, { date, created: new Date().toISOString(), updated: '', last_alive: new Date().toISOString(), items, engine, events: [] });
   console.log('[pipeline] init ok: ' + p);
   process.exit(0);
 }
 
 const st = load(date);
+
+// Infrastructure (WSL TTS engine) bookkeeping; guard writes automatically and
+// failures must never break the startup path itself.
+if (cmd === 'engine') {
+  const allowed = ['unknown', 'starting', 'ready', 'failed'];
+  if (!allowed.includes(args.state)) die('--state must be one of: ' + allowed.join('|'));
+  if (date !== jstDate()) {
+    console.log('[pipeline] engine: skip old-date ' + date + ' (today=' + jstDate() + ')');
+    process.exit(0);
+  }
+  if (!st.engine) st.engine = { state: 'unknown', updated: new Date().toISOString(), note: '' };
+  const from = st.engine.state;
+  st.engine.state = args.state;
+  st.engine.updated = new Date().toISOString();
+  st.engine.note = args.note || '';
+  st.events.push({ t: st.engine.updated, id: 'engine', from, to: args.state, retry: false, note: st.engine.note });
+  if (st.events.length > 300) st.events = st.events.slice(-300);
+  save(date, st);
+  console.log('[pipeline] engine: ' + from + ' -> ' + args.state + (st.engine.note ? ' (' + st.engine.note.slice(0, 120) + ')' : ''));
+  process.exit(0);
+}
+
+// Read-only resume briefing: the single entry point for post-interruption
+// continuation. Never saves; any date allowed.
+if (cmd === 'resume') {
+  const age = (iso) => {
+    if (!iso) return null;
+    const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    return Number.isFinite(m) ? m : null;
+  };
+  const fmtAge = (m) => (m == null ? '?' : (m >= 0 ? m + 'm前' : Math.abs(m) + 'm後'));
+  console.log('date=' + st.date + ' now(JST)=' + jstHHMM() + ' last_alive=' + st.last_alive);
+  const hb = age(st.last_alive);
+  if (hb != null && hb > 15) console.log('WARN heartbeat stale ' + fmtAge(hb) + ' (run alive first)');
+  const eng = st.engine || { state: 'unknown', updated: '', note: '' };
+  console.log('engine=' + eng.state + ' updated=' + fmtAge(age(eng.updated)) + (eng.note ? ' note=' + eng.note.slice(0, 120) : ''));
+  for (const [id] of ITEM_DEFS) {
+    const it = st.items[id];
+    const m = age(it.updated);
+    const stage = (TH[it.stage] || {})[it.state];
+    let hint = '';
+    if (it.state === 'done') hint = '→ skip';
+    else if (it.state === 'running') hint = '→ continue/takeover ' + fmtAge(m) + (stage ? '/threshold ' + stage + 'm' : '');
+    else if (it.state === 'reviewing') hint = '→ review ' + fmtAge(m) + (stage ? '/threshold ' + stage + 'm' : '');
+    else if (it.state === 'failed') hint = '→ retry';
+    else hint = '→ queued';
+    console.log(`${id.padEnd(15)} ${String(it.state).padEnd(9)} ${fmtAge(m).padEnd(8)} ${hint} ${it.note.slice(0, 50)}`);
+  }
+  const badContent = ITEM_DEFS.filter(([id]) => /^(draft-|tts-)/.test(id) || ['spotcheck', 'publish'].includes(id))
+    .filter(([id]) => st.items[id] && st.items[id].state === 'skipped');
+  if (badContent.length) console.log('CONTRACT VIOLATION skipped items: ' + badContent.map(([id]) => id).join(', '));
+  const next = [];
+  for (const [id] of ITEM_DEFS) {
+    const it = st.items[id];
+    if (it.state === 'running' || it.state === 'reviewing') next.push(id + ': continue or takeover (check stale threshold)');
+    if (it.state === 'failed') next.push(id + ': retry');
+  }
+  const ttsPending = ITEM_DEFS.filter(([id]) => /^tts-/.test(id) && st.items[id].state !== 'done' && st.items[id].state !== 'skipped').length;
+  if (eng.state !== 'ready' && ttsPending > 0) next.push('engine: start/check WSL TTS server before TTS work (guard updates engine state)');
+  if (hb != null && hb > 15) next.push('heartbeat: run alive first');
+  if (!next.length) console.log('NEXT: all tracked items terminal; verify publish/final state');
+  else for (const n of next) console.log('NEXT: ' + n);
+  process.exit(0);
+}
 
 if (cmd === 'set') {
   const it = st.items[args.id];
@@ -289,4 +356,4 @@ if (cmd === 'alive') {
   process.exit(0);
 }
 
-die('未知命令: ' + cmd + '（init|set|get|status|check|deadlines|alive）');
+die('未知命令: ' + cmd + '（init|set|get|status|check|deadlines|alive|engine|resume）');

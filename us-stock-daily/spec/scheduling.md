@@ -114,6 +114,12 @@ v2 の二段構成は否決された。夜間の事前収集では前日の素�
 
 - パスは `daily-output/<date>/pipeline.json`。読み書きは
   `node us-stock-daily/tools/pipeline/pipeline.mjs` のみ（原子書き込み。CLI はファイル先頭コメント参照）。
+- 断点復帰は `node ... pipeline.mjs resume --date D` を唯一の入口とする（読み取り専用・任意の日付で実行可）。
+  resume の出力（engine 状態・各 item の状態と経過時間・NEXT 提案）を確認してから再開すること。
+  ディレクトリ一覧からの進捗推測で再実行してはならない。
+- engine 状態契約: WSL TTS エンジンの状態（`starting` / `ready` / `failed`）は `pipeline.json` の
+  `engine` ブロックに保存される。`start_server_guard.ps1` が自動記帳し、`engine` サブコマンドは
+  古い日付を無視する（`exit 0`）。記帳の失敗は起動処理を壊さない。
 - ライフサイクル: `pending → running → reviewing → done`（または failed/skipped）。
   **ライターが draft-X を done にした時点で「TTS 取得可能」を意味する**。TTS ワーカーは取得時に
   tts-X を running にし、完了時に done にする。各 item の書き込み責任者は owner の一者のみで、

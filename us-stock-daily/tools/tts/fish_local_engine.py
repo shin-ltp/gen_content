@@ -70,7 +70,7 @@ def server_ready(timeout: float = 3.0) -> bool:
         return False
 
 
-def ensure_server() -> bool:
+def ensure_server(pipeline_date: str | None = None) -> bool:
     """Start the WSL2 fish server idempotently via the guarded launcher.
 
     The guard probes HTTP first, so a healthy external server is never killed.
@@ -82,6 +82,7 @@ def ensure_server() -> bool:
         _log(f"server launcher missing: {START_GUARD}")
         return False
     _log("starting local WSL2 fish server via guarded launcher")
+    date_args = ["-PipelineDate", pipeline_date] if pipeline_date else []
     try:
         proc = subprocess.run(
             [
@@ -95,6 +96,7 @@ def ensure_server() -> bool:
                 "compile",
                 "-WaitSeconds",
                 str(STARTUP_TIMEOUT_SEC),
+                *date_args,
             ],
             cwd=str(REPO_ROOT),
             timeout=STARTUP_TIMEOUT_SEC + 60,
@@ -112,7 +114,10 @@ def ensure_server() -> bool:
     except (OSError, subprocess.TimeoutExpired) as e:
         _log(f"failed to launch WSL server: {e}")
         return False
-    _mark_started()
+    if proc.returncode != 0:
+        # The guard may time out while compilation is still finishing; trust
+        # the HTTP probe, not the launcher exit code alone.
+        _log(f"launcher rc={proc.returncode}; probing server anyway")
     return server_ready()
 
 
@@ -236,12 +241,12 @@ def build_engine(issue_date: str, engine_mode: str = "auto", *, ensure: bool = F
 
         return FishDailyEngine(issue_date), "mac-mlx-ssh"
     if mode in ("local", "wsl"):
-        if ensure and not ensure_server():
+        if ensure and not ensure_server(pipeline_date=issue_date):
             raise RuntimeError(f"local Fish server is not ready at {API_URL}")
         return FishLocalEngine(issue_date), "wsl2-local"
     if mode != "auto":
         raise SystemExit(f"unknown --engine value: {engine_mode}")
-    if ensure and not ensure_server():
+    if ensure and not ensure_server(pipeline_date=issue_date):
         raise RuntimeError(
             "auto engine requires the local WSL2 Fish server; refusing to "
             f"fall back to Mac for production TTS. Endpoint={API_URL}"
