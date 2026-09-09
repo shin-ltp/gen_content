@@ -1,6 +1,6 @@
 ﻿# Prepare remotion/public/ for one episode:
 #   1. screenshot visual.html slides (with per-cue state variants) via headless Chrome
-#   2. copy TTS wav + BGM (opening/ending/sting/bed, first candidate each)
+#   2. copy TTS wavs, the fixed opening/ending mixes, and the transition sting
 #   3. merge durations.json (measured) with segment-map.json -> remotion_input.json
 # Run after tools/tts/generate_audio.py has produced production/audio/durations.json.
 import argparse
@@ -23,12 +23,10 @@ FPS = 30
 FFPROBE = DAILY / "remotion/node_modules/@remotion/compositor-win32-x64-msvc/ffprobe.exe"
 
 
-# First candidate of each BGM kind (assets/bgm/manifest.md).
+# Remotion plays the fixed opening/ending voice+BGM mixes directly; the only
+# raw BGM file it needs at render time is the standalone section sting.
 BGM = {
-    "opening": DAILY / "assets/bgm/opening/open_01_inspired_30sec.mp3",
-    "ending": DAILY / "assets/bgm/ending/end_01_and-awaken_28sec.mp3",
     "sting": DAILY / "assets/bgm/transition/tr_04_technology_6s.mp3",
-    "bed": DAILY / "assets/bgm/bed/bed_01_easy-lemon_120sec.mp3",
 }
 
 # S0 fixed opening background (vision-design.md §0.1, 2026-09-01).
@@ -289,8 +287,7 @@ def main() -> int:
     else:
         base_images = {}
 
-    # BGM: first candidate per kind
-    for kind in ("opening", "ending", "sting", "bed"):
+    for kind in ("sting",):
         shutil.copy2(BGM[kind], pub / "bgm" / BGM[kind].name)
     shutil.copy2(DAILY / "assets" / "logo.png", pub / "assets" / "logo.png")
     shutil.copy2(DAILY / "assets" / "logo-white-bk.png", pub / "assets" / "logo-white-bk.png")

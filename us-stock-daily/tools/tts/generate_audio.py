@@ -66,7 +66,7 @@ CORNER_HEAD_IDS = {
 }
 STING_SOURCE = (
     Path(__file__).resolve().parents[2] / "assets" / "bgm" / "transition"
-    / "tr_03_news-sting_5sec.mp3"
+    / "tr_04_technology_6s.mp3"
 )
 STING_LEAD_SEC = 1.0
 # Opening/ending get their BGM baked into the narration WAV. The lead lets the
@@ -84,7 +84,7 @@ OP_ED_BGM = {
     # mixed through the generic opening/ending BGM branch.
     "355_S39-greeting": {
         "source": Path(__file__).resolve().parents[2]
-        / "assets/bgm/ending/end_01_and-awaken_28sec.mp3",
+        / "assets/bgm/ending/end_03_daytime-tv-theme_46sec.mp3",
         "lead_sec": 0.5,
         "tail_sec": 5.0,
         "volume": 0.34,
@@ -672,7 +672,7 @@ def merge_segment(
     elif seg_meta["id"] == "END-outro":
         bgm_source = (
             Path(__file__).resolve().parents[2]
-            / "assets/bgm/ending/end_01_and-awaken_28sec.mp3"
+            / "assets/bgm/ending/end_03_daytime-tv-theme_46sec.mp3"
         )
         if not bgm_source.is_file():
             raise RuntimeError(f"BGM source not found: {bgm_source}")
@@ -705,7 +705,7 @@ def merge_segment(
         if greeting_candidates:
             bgm_source = (
                 Path(__file__).resolve().parents[2]
-                / "assets/bgm/ending/end_01_and-awaken_28sec.mp3"
+                / "assets/bgm/ending/end_03_daytime-tv-theme_46sec.mp3"
             )
             if not bgm_source.is_file():
                 raise RuntimeError(f"BGM source not found: {bgm_source}")
