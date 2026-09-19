@@ -19,6 +19,13 @@ youtube_client.json
 __pycache__/
 *.pyc
 
+# Local runtimes/caches and derived state
+.venv/
+.uv-python/
+.uv-cache/
+.sandbox-test/
+us-stock-daily/assets/media_resources/media_assets.db
+
 # Local push debug artifacts
 push_log.txt
 push_output*.txt
