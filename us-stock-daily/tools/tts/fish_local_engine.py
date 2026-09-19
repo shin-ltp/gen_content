@@ -1,4 +1,4 @@
-﻿"""Fish Audio S2 Pro synthesis against the local WSL2 server (Windows host).
+"""Fish Audio S2 Pro synthesis against the local WSL2 server (Windows host).
 
 Default backend for us-stock-daily since 2026-09-02:
     WSL2 Ubuntu-24.04 + torch.compile(triton) + INT8 weights (SKIP_GFX1103_FIX=1)
@@ -10,7 +10,8 @@ exactly the same issue_dir-relative paths the Mac engine uses, so
 generate_audio.py's merge/validate/durations logic works unchanged.
 
 Engine selection: build_engine(issue_date, mode) with mode
-    auto  -> local WSL2 server; start it automatically when not ready (default)
+    auto  -> local WSL2 server; before 10:00 JST, also use Mac MLX in
+             parallel when SSH is reachable (default)
     local -> force WSL2 server (error if it cannot be started)
     mac   -> force Mac MLX INT8 over SSH
 """
@@ -25,7 +26,9 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -33,7 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fish_batch import FishJob  # noqa: E402
 from tts_config import get_issue_dir, voice_ref_paths  # noqa: E402
 
-API_URL = os.getenv("FISH_LOCAL_API_URL", "http://127.0.0.1:8080/v1/tts").strip()
+API_URL = os.getenv("FISH_LOCAL_API_URL", "http://127.0.0.1:18790/v1/tts").strip()
 REQUEST_TIMEOUT_SEC = int(os.getenv("FISH_LOCAL_TTS_TIMEOUT", "1800"))
 # In-flight concurrent requests per client (server-side batching makes this
 # ~2.5x faster at n=3). Default 1 keeps the original sequential behavior.
@@ -43,7 +46,7 @@ TOKENS_PER_CHAR = float(os.getenv("FISH_LOCAL_TOKENS_PER_CHAR", "4.2"))
 WSL_DISTRO = os.getenv("FISH_LOCAL_WSL_DISTRO", "Ubuntu-24.04")
 WSL_USER = os.getenv("FISH_LOCAL_WSL_USER", "root")
 STARTUP_TIMEOUT_SEC = int(os.getenv("FISH_LOCAL_STARTUP_TIMEOUT", "900"))
-READY_HTTP_CODES = {200, 404, 405}
+READY_HTTP_CODES = {200, 204, 404, 405}
 REPO_ROOT = Path(__file__).resolve().parents[3]
 START_GUARD = REPO_ROOT / "tools" / "fishaudio-s2-pro" / "wsl" / "start_server_guard.ps1"
 
@@ -233,6 +236,92 @@ class FishLocalEngine:
         _log(f"batch done: {total} wavs in {(time.time() - t0) / 60:.1f} min")
 
 
+class ParallelFishEngine:
+    """Split complete sentence directories between WSL2 and Mac."""
+
+    def __init__(self, issue_date: str, local_engine, mac_engine):
+        self.issue_date = issue_date
+        self.issue_dir = get_issue_dir(issue_date)
+        self.local_engine = local_engine
+        self.mac_engine = mac_engine
+        self.remote_root = f"{local_engine.remote_root} + {mac_engine.remote_root}"
+
+    @staticmethod
+    def _split_jobs(jobs: list[FishJob]) -> tuple[list[FishJob], list[FishJob]]:
+        """Keep a segment's sentence WAVs on one host to avoid scp overlaps."""
+        groups: dict[str, tuple[int, list[FishJob]]] = {}
+        for job in jobs:
+            rel_dir = str(Path(job.rel_wav).parent.as_posix())
+            chars, group_jobs = groups.get(rel_dir, (0, []))
+            groups[rel_dir] = (chars + len(job.text), group_jobs + [job])
+
+        local: list[FishJob] = []
+        mac: list[FishJob] = []
+        local_chars = mac_chars = 0
+        for _, (chars, group_jobs) in sorted(groups.items()):
+            if local_chars <= mac_chars:
+                local.extend(group_jobs)
+                local_chars += chars
+            else:
+                mac.extend(group_jobs)
+                mac_chars += chars
+        _log(
+            f"parallel split: local={len(local)} jobs/{local_chars} chars, "
+            f"mac={len(mac)} jobs/{mac_chars} chars"
+        )
+        return local, mac
+
+    def synthesize(self, jobs: list[FishJob]) -> None:
+        local_jobs, mac_jobs = self._split_jobs(jobs)
+        if not mac_jobs:
+            self.local_engine.synthesize(local_jobs)
+            return
+        if not local_jobs:
+            self.mac_engine.synthesize(mac_jobs)
+            return
+
+        failures: list[BaseException] = []
+
+        def run(label: str, engine, engine_jobs: list[FishJob]) -> None:
+            try:
+                engine.synthesize(engine_jobs)
+            except BaseException as exc:
+                _log(f"{label} branch failed: {exc}")
+                failures.append(exc)
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [
+                pool.submit(run, "wsl2", self.local_engine, local_jobs),
+                pool.submit(run, "mac", self.mac_engine, mac_jobs),
+            ]
+            for future in futures:
+                future.result()
+        if failures:
+            raise RuntimeError(f"parallel TTS failed: {failures[0]}")
+
+
+def mac_reachable(issue_date: str) -> tuple[bool, object | None, str]:
+    """Probe Mac SSH without launching synthesis."""
+    from fish_batch import FishDailyEngine
+
+    engine = FishDailyEngine(issue_date)
+    try:
+        engine._ssh.ssh_short("echo OK", label="SSH(mac probe)")
+    except Exception as exc:
+        return False, None, str(exc)
+    return True, engine, "ok"
+
+
+def _warn_mac_unavailable(issue_date: str, reason: str) -> None:
+    issue_dir = get_issue_dir(issue_date)
+    log_path = issue_dir / "production" / "tts" / "mac-unavailable.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().astimezone().isoformat(timespec="seconds")
+    with log_path.open("a", encoding="utf-8", newline="") as f:
+        f.write(f"{stamp}\t{reason.replace(chr(10), ' ')}\n")
+    _log(f"Mac unavailable before 10:00 JST; continuing WSL2 only: {reason}")
+
+
 def build_engine(issue_date: str, engine_mode: str = "auto", *, ensure: bool = False):
     """Return (engine, backend_label); see module docstring for modes."""
     mode = (engine_mode or "auto").strip().lower()
@@ -253,4 +342,15 @@ def build_engine(issue_date: str, engine_mode: str = "auto", *, ensure: bool = F
         )
     if not ensure and not server_ready():
         _log("local WSL2 server not ready (dry-run: startup deferred)")
+    if ensure:
+        now = datetime.now(ZoneInfo("Asia/Tokyo"))
+        if now.hour < 10:
+            reachable, mac_engine, reason = mac_reachable(issue_date)
+            if reachable and mac_engine is not None:
+                local_engine = FishLocalEngine(issue_date)
+                return (
+                    ParallelFishEngine(issue_date, local_engine, mac_engine),
+                    "wsl2-local + mac-mlx-ssh",
+                )
+            _warn_mac_unavailable(issue_date, reason)
     return FishLocalEngine(issue_date), "wsl2-local"

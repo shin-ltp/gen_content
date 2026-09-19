@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Remotion CLI config.
  * All options: https://remotion.dev/docs/config
  */

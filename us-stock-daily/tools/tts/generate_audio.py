@@ -1,4 +1,4 @@
-﻿"""Generate narration audio from prepared TTS segment files.
+"""Generate narration audio from prepared TTS segment files.
 
 Flow per segment file:
 1. Slice text into sentences by [pause long] / [pause short] / 。？！
@@ -13,7 +13,7 @@ Flow per segment file:
 Usage:
   python generate_audio.py 2026-08-19 --dry-run   # plan only, no SSH
   python generate_audio.py 2026-08-19             # synthesize + merge
-  python generate_audio.py 2026-08-19 --only S01-haiku S22-C03
+  python generate_audio.py 2026-08-19 --only A-p1 S22-C03
 """
 from __future__ import annotations
 
@@ -80,8 +80,8 @@ OP_ED_BGM = {
         "volume": 0.32,
     },
     # Legacy id kept so reruns of older episodes retain their ending music.
-    # END-outro is assembled as a reusable fixed asset below, so it is not
-    # mixed through the generic opening/ending BGM branch.
+    # The fixed ending asset is rebuilt by build_fixed_ending.py; regular
+    # segment mixing never creates it.
     "355_S39-greeting": {
         "source": Path(__file__).resolve().parents[2]
         / "assets/bgm/ending/end_03_daytime-tv-theme_46sec.mp3",
@@ -391,7 +391,7 @@ def _pcm_mix(
         int(round((delay + _wav_duration_wave(path)) * sample_rate))
         for path, _gain, delay, _fade_in, _fade_out in entries
     )
-    handles: list[tuple[wave.Wave_read, float, int, int, float, float]] = []
+    handles: list[tuple[wave.Wave_read, float, int, int, int, int]] = []
     for path, gain, delay, fade_in, fade_out in entries:
         w = wave.open(str(path), "rb")
         params = (w.getnchannels(), w.getsampwidth(), w.getframerate(), w.getcomptype())
@@ -401,7 +401,9 @@ def _pcm_mix(
                 f"pcm params mismatch in {path.name}: {params}; "
                 f"expected mono 16-bit {sample_rate}Hz PCM"
             )
-        handles.append((w, gain, int(round(delay * sample_rate)), w.getnframes(), fade_in, fade_out))
+        fade_in_frames = int(round(fade_in * sample_rate))
+        fade_out_frames = int(round(fade_out * sample_rate))
+        handles.append((w, gain, int(round(delay * sample_rate)), w.getnframes(), fade_in_frames, fade_out_frames))
 
     out_wav.parent.mkdir(parents=True, exist_ok=True)
     with wave.open(str(out_wav), "wb") as out:
@@ -507,41 +509,32 @@ def _build_fixed_ending(
     greeting_wav: Path,
     bgm_source: Path,
 ) -> tuple[Path, float, float]:
-    """Build the reusable disclaimer + pause + greeting + BGM ending asset."""
-    disclaimer_candidates = sorted(
-        (issue_dir / "production" / "audio").glob("*_END-disclaimer.wav")
-    )
-    if not disclaimer_candidates:
-        raise RuntimeError("fixed ending requires *_END-disclaimer.wav")
-    disclaimer = disclaimer_candidates[0]
-    if not disclaimer.is_file():
-        raise RuntimeError(f"fixed ending requires {disclaimer.name}")
-    lead_sec = 0.5
-    end_card_pause_sec = 3.5
-    tail_sec = 3.0
+    """Build BGM lead + greeting + BGM fade-out ending asset.
+
+    The disclaimer is VISUAL-ONLY. BGM establishes first, the fixed greeting
+    starts at 1.5s, and the BGM fades linearly after the speech ends.
+    """
+    lead_sec = 1.5
+    tail_sec = 4.0
     bgm_pcm = work_dir / "fixed_ending_bgm_pcm.wav"
     _decode_mono_pcm(bgm_source, bgm_pcm)
-    disclaimer_sec = _wav_duration_wave(disclaimer)
     greeting_sec = _wav_duration_wave(greeting_wav)
-    total = lead_sec + disclaimer_sec + end_card_pause_sec + greeting_sec + tail_sec
+    total = lead_sec + greeting_sec + tail_sec
     bgm_loop = work_dir / "fixed_ending_bgm_loop.wav"
-    _loop_pcm(bgm_pcm, bgm_loop, total - lead_sec)
+    _loop_pcm(bgm_pcm, bgm_loop, total)
     out_wav = FIXED_AUDIO_DIR / "ending.wav"
-    _pcm_mix(
-        [
-            (disclaimer, 1.0, lead_sec, 0.0, 0.0),
-            (greeting_wav, 1.0, lead_sec + disclaimer_sec + end_card_pause_sec, 0.0, 0.0),
-            (bgm_loop, 0.34, lead_sec, 0.5, tail_sec),
-        ],
-        out_wav,
-    )
-    end_card_at = lead_sec + disclaimer_sec + end_card_pause_sec
+    entries: list[tuple[Path, float, float, float, float]] = []
+    entries.append((bgm_loop, 0.34, 0.0, 0.5, tail_sec))
+    entries.append((greeting_wav, 1.0, lead_sec, 0.0, 0.0))
+    _pcm_mix(entries, out_wav)
+    end_card_at = 4.0
     meta = {
-        "disclaimer_sec": round(disclaimer_sec, 3),
-        "end_card_pause_sec": end_card_pause_sec,
+        "speech_start_sec": round(lead_sec, 3),
+        "speech_end_sec": round(lead_sec + greeting_sec, 3),
+        "bgm_tail_sec": round(tail_sec, 3),
+        "disclaimer_hold_sec": 4.0,
         "end_card_at_sec": round(end_card_at, 3),
         "greeting_sec": round(greeting_sec, 3),
-        "bgm_tail_sec": tail_sec,
         "total_sec": round(total, 3),
     }
     (work_dir / "fixed_ending_meta.json").write_text(
@@ -669,68 +662,6 @@ def merge_segment(
             work_dir, merged_wav, out_wav, bgm_source,
             lead_sec=lead, tail_sec=tail, volume=float(op_ed["volume"]),
         )
-    elif seg_meta["id"] == "END-outro":
-        bgm_source = (
-            Path(__file__).resolve().parents[2]
-            / "assets/bgm/ending/end_03_daytime-tv-theme_46sec.mp3"
-        )
-        if not bgm_source.is_file():
-            raise RuntimeError(f"BGM source not found: {bgm_source}")
-        FIXED_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
-        greeting_pcm = work_dir / "greeting_pcm.wav"
-        _decode_mono_pcm(out_wav, greeting_pcm)
-        fixed_wav, fixed_total, end_card_at = _build_fixed_ending(
-            issue_dir, work_dir, greeting_pcm, bgm_source
-        )
-        shutil.copyfile(fixed_wav, out_wav)
-        for sentence in timeline:
-            sentence["start"] += end_card_at
-            sentence["end"] += end_card_at
-        cursor = fixed_total
-        meta_path = FIXED_AUDIO_DIR / "ending.json"
-        meta_path.write_text(
-            json.dumps(
-                {
-                    "asset": "assets/audio/fixed/ending.wav",
-                    "endCardAtSec": round(end_card_at, 3),
-                    "durationSec": round(fixed_total, 3),
-                },
-                ensure_ascii=False, indent=2,
-            ) + "\n",
-            encoding="utf-8",
-        )
-        print(f"[fixed] ending -> {fixed_wav}, end card at {end_card_at:.3f}s")
-    elif seg_meta["id"] == "END-disclaimer":
-        greeting_candidates = sorted(audio_dir.glob("*_END-outro.wav"))
-        if greeting_candidates:
-            bgm_source = (
-                Path(__file__).resolve().parents[2]
-                / "assets/bgm/ending/end_03_daytime-tv-theme_46sec.mp3"
-            )
-            if not bgm_source.is_file():
-                raise RuntimeError(f"BGM source not found: {bgm_source}")
-            FIXED_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
-            fixed_wav, fixed_total, end_card_at = _build_fixed_ending(
-                issue_dir, work_dir, greeting_candidates[-1], bgm_source
-            )
-            shutil.copyfile(fixed_wav, out_wav)
-            for sentence in timeline:
-                sentence["start"] += 0.5
-                sentence["end"] += 0.5
-            cursor = fixed_total
-            meta_path = FIXED_AUDIO_DIR / "ending.json"
-            meta_path.write_text(
-                json.dumps(
-                    {
-                        "asset": "assets/audio/fixed/ending.wav",
-                        "endCardAtSec": round(end_card_at, 3),
-                        "durationSec": round(fixed_total, 3),
-                    },
-                    ensure_ascii=False, indent=2,
-                ) + "\n",
-                encoding="utf-8",
-            )
-            print(f"[fixed] ending -> {fixed_wav}, end card at {end_card_at:.3f}s")
     return out_wav, cursor, timeline
 
 

@@ -1,4 +1,4 @@
-﻿# SearXNG settings.yml — us-stock-daily 专用配置（本机实例）
+# SearXNG settings.yml — us-stock-daily 专用配置（本机实例）
 # 由 ../docker-compose.yaml 挂载到 /etc/searxng/settings.yml。
 # 设计原则: 本机专用实例（端口仅绑 127.0.0.1，无外部访问、无认证层），
 #           关闭限流、开启 JSON API、引擎白名单聚焦财经新闻与日文源。

@@ -1,4 +1,4 @@
-﻿// collect-36kr.mjs - 36kr 深度文章收集器（AI/科技领域）
+// collect-36kr.mjs - 36kr 深度文章收集器（AI/科技领域）
 // 从 /information/AI/ 和 /information/technology/ 收集深度分析文章
 import fs from 'node:fs';
 import path from 'node:path';

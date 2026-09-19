@@ -1,4 +1,4 @@
-﻿// collect-utils.mjs — 共通ユーティリティ（frontmatter / HTML除去 / fetch再試行 / 並列安全書き込み）
+// collect-utils.mjs — 共通ユーティリティ（frontmatter / HTML除去 / fetch再試行 / 並列安全書き込み）
 import fs from 'node:fs';
 import path from 'node:path';
 

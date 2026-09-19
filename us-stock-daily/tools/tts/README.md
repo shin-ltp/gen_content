@@ -1,4 +1,4 @@
-﻿# us-stock-daily TTS pipeline
+# us-stock-daily TTS pipeline
 
 Phase 5 音声層: 内容原稿 (draft-A/B/C/D) → 播音稿切分 → Fish Audio 合成 → Remotion 用音声 + 时长清单。
 
@@ -24,15 +24,29 @@ production/audio/durations.json  # 逐句 start/end/duration → Remotion 精确
 > 本地拼接优先用 ffmpeg；若未安装则自动回退到 Python 标准库 `wave` 直接拼接
 > PCM（要求 Fish worker 返回的 WAV 参数一致，正常情况均满足）。
 
+## 分段増分 TTS（partial workflow）
+
+原稿が一部固定できた段階で、その分だけ先に合成できます。`segment-map.json` が
+完成 block のみを含む partial 版のときは `--partial` を付けます（視覚 HTML を
+要求しません）。`durations.json` は既存セグメントを保持したまま増分結合します。
+
+```powershell
+python -B -X utf8 tools/orchestrator/build_pipeline.py build-map --date YYYY-MM-DD --only draft-A
+python -B -X utf8 tools/tts/prepare_tts.py YYYY-MM-DD --partial
+python -B -X utf8 tools/tts/generate_audio.py YYYY-MM-DD --only draft-A
+```
+
 ## 切分规则 (影音同步的关键)
 
-- **页面切换 = 独立文件**: visual-v2.html 的每个 `swrap id=sN` 至少对应一个 TTS 文件。
-- **页内切换 = 独立文件**: S2 四问轮播按 `data-idx` 拆 4 条; S3 市况页按
-  指数/值下がり/値上がり/その他市场/VIX 拆 5 条; S22 新闻按 n-item 1-8 拆; S31 按事件拆。
+- **页面切换 = 独立文件**: 现行契约使用 `visual.html`，S0 是固定标题卡；
+  2026-09-19 起 A-p1..A-pN 共享 s1 一览页，但每个预告仍是独立 TTS 文件，
+  并在音频时长驱动的 timeline 中切换 s1 的标题行和主题图。
+- **页内切换 = 独立文件**: 旧契约的 S2 四问轮播、S3 市况页、S22 新闻和 S31
+  事件页仅在历史回放中保留。当前契约按 segment-map 的页面边界切段。
 - **文件名含编号**: `NNN_内容ID.txt`，页间编号留 10 的间隔 (040, 050, ...)，
   后期可在间隔处插入 BGM、节目介绍等外部音频; 页内子段 +1 递增。
 - **外部槽位**: `type: "external"` (S00 片头、END 片尾) 只占编号不合成，由后期素材填充。
-- **声音映射**: S01 俳句 = `kyoujyu`，其余全部 = `xiaomei`，写入 segment-map 的 `voice` 字段。
+- **声音映射**: 俳句 S01 已于 2026-09-17 废除；新契约下全部 = `xiaomei`，写入 segment-map 的 `voice` 字段。
 
 ## Fish Audio 对策
 
@@ -67,6 +81,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
 
 - 首次请求 (或换引用音色/采样配置后) 需等 torch.compile 编译 (约 475s 一次性)，之后缓存命中，稳态 317~338 ms/token。
 - 覆盖整期节目期间 Windows 端口直通 (mirrored network)，无需额外配置。
+- 服务器以 systemd-run 的临时 unit（fishtts）常驻启动，不随 WSL 会话退出而终止。
 - 相关环境变量: `FISH_LOCAL_API_URL`、`FISH_LOCAL_TTS_TIMEOUT` (默认 1800s)、`FISH_LOCAL_TOKENS_PER_CHAR` (默认 4.2，用于估算 max_new_tokens)、`FISH_LOCAL_STARTUP_TIMEOUT` (默认 900s，传给 guard 的等待时间)。
 
 ## Usage
@@ -96,6 +111,6 @@ Mac 回落链路环境变量 (默认值同 economist-podcast sample):
 ## 给 Remotion 的接口
 
 `durations.json` 每个 segment 含 `order/id/slide/voice/file/duration` 和逐句
-`sentences[] (text/start/end/pause_after)`。轮播高亮、页内内容切换直接用句子级
+`sentences[] (text/start/end/pause_after)`。旧契约轮播高亮、现行契约页内内容切换直接用句子级
 时间戳对轨; 页间切换用 segment 边界。外部槽位 (S00/END) 由 manifest 的
 `asset_hint` 提示后期插入。

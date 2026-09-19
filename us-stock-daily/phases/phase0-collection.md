@@ -1,4 +1,4 @@
-﻿# Phase 0：情報収集（collector-agent）
+# Phase 0：情報収集（collector-agent）
 
 > 旧 PLAN.md 第三章（3.1〜3.8）。DB 層との統合は [../infra/database-layer.md](../infra/database-layer.md)、ロゴキャッシュは [../infra/brand-asset-cache.md](../infra/brand-asset-cache.md)。状態: ✅ 定義済み。
 
@@ -30,7 +30,7 @@
 | 出所・時刻 | ✅ 保存 | — |
 | スクリーンショット | ❌ 取得せず、`assets_needed` でフラグだけ | ✅ 採用時にクロール |
 | 記事内チャート・画像 | ❌ 取得せず、フラグだけ | ✅ 採用時にクロール |
-| 企業ロゴ・概念図 | ❌ | ✅ 必要時に取得（ロゴは `assets/brands/` 共有キャッシュ優先） |
+| 企業ロゴ・テーマ画像 | ❌ | ✅ 必要時に取得（ロゴは `assets/brands/` 共有キャッシュ優先、テーマ画像は `assets/b{n}-{p}.png`） |
 
 > Phase 2 で素材がスクリプトに採用された時点で `adopted` を `true` に更新する。画像取得は Phase 2 終選後の
 > **視覚設計ブリーフ** が正式トリガとなり、Phase 3 がブリーフの候補アセット一覧をもとに取得して `assets/` に
@@ -92,7 +92,7 @@ status: raw                        # raw|verified|adopted|dropped
 **フォーマット規約:**
 - `id` は カテゴリ接頭辞 + 日付 + 3桁連番。同日内で一意。
 - `url` は**必須**。URLなき情報は原則採録しない（出所追跡不能のため）。
-- `key_data` は後段のデータ密度チェックの原料。具体的な数値を入れる。
+- `key_data` は後段の数字品質チェックの原料。比較・参照と結論の関係を残す形で具体的な数値を入れる。
 - 収集時点では `priority=TBD` `adopted=false` `status=raw` でよい。
 
 ---

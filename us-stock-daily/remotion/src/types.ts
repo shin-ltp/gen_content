@@ -24,8 +24,13 @@ export interface SegmentInput {
   /** corner-change head: play transition sting on top */
   sting: boolean;
   sentences: SentenceTiming[];
-  /** ending slot only: greeting speech end (sec); EndCard fades in after it */
+  /** legacy greeting slot: greeting speech end (sec); EndCard fades in after it */
   speechEndSec?: number;
+  /** fixed ending slot: disclaimer hold ends and this image replaces the slide */
+  image2?: string;
+  image2AtSec?: number;
+  /** fixed ending: render exactly durationSec without transition/sting pads */
+  exactDuration?: boolean;
   /** fixed ending slot: disclaimer hold ends and EndCard replaces this slide */
   endCardAtSec?: number;
   /** exact visual state for crossfade grouping; falls back to segment id */

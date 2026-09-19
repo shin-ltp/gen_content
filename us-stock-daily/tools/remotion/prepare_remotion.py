@@ -1,4 +1,4 @@
-﻿# Prepare remotion/public/ for one episode:
+# Prepare remotion/public/ for one episode:
 #   1. screenshot visual.html slides (with per-cue state variants) via headless Chrome
 #   2. copy TTS wavs, the fixed opening/ending mixes, and the transition sting
 #   3. merge durations.json (measured) with segment-map.json -> remotion_input.json
@@ -15,6 +15,16 @@ import tempfile
 from typing import Dict, Optional, Tuple
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pipeline"))
+
+from episode_contract import (  # noqa: E402
+    CONTRACT_NEW_EFFECTIVE_DATE,
+    LEGACY_ENDING_SLIDE,
+    OPENING_VISUAL_ASSET,
+    OPENING_TEMPLATE_ASSET,
+    OPENING_SLIDE_ID,
+)
+
 CHROME = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 DAILY = Path(__file__).resolve().parents[2]  # us-stock-daily/
 FPS = 30
@@ -29,16 +39,56 @@ BGM = {
     "sting": DAILY / "assets/bgm/transition/tr_04_technology_6s.mp3",
 }
 
-# S0 fixed opening background (vision-design.md §0.1, 2026-09-01).
+# S0 fixed opening background (vision-design.md §0.1).
 # Auto-copied into the issue dir when visual.html references it but Phase 3 forgot.
-OPENING_VISUAL_SRC = DAILY / "assets/brands/template/opening-visual.png"
+OPENING_VISUAL_SRC = DAILY / OPENING_TEMPLATE_ASSET
+
+IMG_SRC_RE = re.compile(r'<img[^>]*\bsrc=["\']([^"\']+)["\']', re.I)
+
+
+def ensure_local_images(issue_dir: Path, html_src: str) -> None:
+    """Copy shared-library images referenced by visual.html into the issue dir.
+
+    Phase 3 selects assets by hand, so a stale prompt can leave the day's
+    visual.html pointing at the shared assets tree without ever copying the
+    files. Missing screenshots render broken frames; this guard restores the
+    file from the shared library when possible and fails loudly otherwise.
+    """
+    for src in IMG_SRC_RE.findall(html_src):
+        if re.match(r"^[a-z][a-z0-9+.-]*:", src, re.I) or src.startswith(("//", "#", "data:")):
+            continue
+        path = (src.replace("/", "\\")).lstrip("\\")
+        parts = [part for part in path.split("\\") if part not in ("", ".", "..")]
+        if not parts or not parts[-1].lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+            continue
+        dst = issue_dir.joinpath(*parts)
+        if dst.exists():
+            continue
+        candidates = []
+        if parts[0] == "assets" and len(parts) >= 3:
+            candidates.append(DAILY.joinpath(*parts))
+        if parts[0] == "..":
+            candidates.append(DAILY.joinpath(*parts[1:]))
+        copied = False
+        for candidate in candidates:
+            if candidate.is_file():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(candidate, dst)
+                print(f"[copy] {src} (shared asset)")
+                copied = True
+                break
+        if not copied:
+            raise RuntimeError(
+                f"missing visual asset: {dst} (referenced as {src}); "
+                "check Phase 3 asset selection"
+            )
 
 WEEK_JA = ["月", "火", "水", "木", "金", "土", "日"]
 
 # Opening cover slot (slide s0). Injected when the day's segment-map has no
 # S00 opening (v3 pipeline maps). If the pre-mixed intro wav exists it drives
 # the slot duration; otherwise the cover holds silently for this many seconds.
-OPENING_SLIDE = "s0"
+OPENING_SLIDE = OPENING_SLIDE_ID
 OPENING_WAV_NAME = "005_S00-intro.wav"
 OPENING_FALLBACK_SEC = 6.0
 
@@ -138,11 +188,6 @@ def slide_state(
     if m:
         return f"i{m.group(1)}", "news"
     # Legacy 08-28 id/cue format (kept for reruns of older episodes).
-    if slide == "s2":
-        m = re.search(r"idx=(\d)", cue)
-        if m:
-            return f"i{m.group(1)}", "carousel"
-        return ("i3" if ("close" in seg_id or "stays" in cue) else "i0"), "carousel"
     if slide == "s33":
         m = re.match(r"S37-C(\d)", seg_id)
         return (f"i{int(m.group(1)) - 1}" if m else "i0"), "news"
@@ -185,23 +230,26 @@ def capture_shots(
     """
     html_src = (issue_dir / "visual.html").read_text(encoding="utf-8")
     html_src = re.sub(r"<script>.*?</script>", "", html_src, flags=re.S)
-    if "assets/concepts/opening-visual.png" in html_src:
-        dst = issue_dir / "assets/concepts/opening-visual.png"
+    ensure_local_images(issue_dir, html_src)
+    if OPENING_VISUAL_ASSET in html_src:
+        dst = issue_dir / OPENING_VISUAL_ASSET
         if not dst.exists():
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(OPENING_VISUAL_SRC, dst)
-            print("[copy] assets/concepts/opening-visual.png (fixed S0 background)")
+            print(f"[copy] {OPENING_VISUAL_ASSET} (fixed S0 background)")
     slides_dir.mkdir(parents=True, exist_ok=True)
-    # Slide base shots are always needed. Carousel/news state shots are
-    # collected from the actual segment timeline, so no stale variant can
-    # leak into the render.
+    # Unused v3 wrappers intentionally remain empty and are absent from the
+    # segment timeline. Capture only timeline-referenced slides; carousel and
+    # news state deltas are collected from actual segments so no stale variant
+    # can leak into the render.
     want: Dict[str, Tuple[str, Optional[str], Optional[str], int]] = {}
-    for sm in re.finditer(r'id="(s\d+)"', html_src):
-        slide = sm.group(1)
-        want[f"{slide}.png"] = (slide, None, None, -1)
+    referenced_slides: set[str] = set()
     for seg in seg_map.get("segments", []):
         slide = seg.get("slide") or ""
-        if not re.fullmatch(r"s\d+", slide):
+        if re.fullmatch(r"s\d+", slide):
+            referenced_slides.add(slide)
+            want.setdefault(f"{slide}.png", (slide, None, None, -1))
+        else:
             continue
         state, kind = slide_state(slide, seg.get("cue", ""), seg.get("id", ""))
         if state is None:
@@ -259,7 +307,14 @@ def capture_shots(
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--issue", default="2026-08-28")
+    ap.add_argument(
+        "--issue",
+        default=(
+            datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
+            .date()
+            .isoformat()
+        ),
+    )
     ap.add_argument("--skip-shots", action="store_true")
     args = ap.parse_args()
 
@@ -305,6 +360,74 @@ def main() -> int:
     previous_unit: Optional[str] = None
     for meta in sorted(seg_map["segments"], key=lambda s: s["order"]):
         sid = meta["id"]
+        slide = meta.get("slide") or None
+        cue = meta.get("cue", "")
+        corner = corner_of(sid)
+        unit = section_unit_of(sid)
+        state, _kind = slide_state(slide, cue, sid)
+        image = None
+        if slide is not None:
+            image = (
+                f"assets/slides/{slide}_{state}.png"
+                if state
+                else base_images.get(
+                    slide, f"assets/slides/{slide}.png"
+                )
+            )
+            if not args.skip_shots and slide not in base_images:
+                image = None
+        # The ending slot is visual-only. Its fixed WAV carries the complete
+        # audio timeline, so no transition pad or sting may extend it.
+        if sid == "END-disclaimer" and fixed_ending.is_file():
+            if not fixed_ending_meta_path.is_file():
+                print("[error] fixed ending meta missing")
+                return 1
+            if slide is None:
+                print("[error] END-disclaimer must reference a visual slide")
+                return 1
+            if not args.skip_shots and slide not in base_images:
+                print(f"[error] END-disclaimer visual page is missing: {slide}")
+                return 1
+            fixed_meta = json.loads(fixed_ending_meta_path.read_text(encoding="utf-8-sig"))
+            previous_slide = slide
+            previous_corner = corner
+            previous_unit = unit
+            end_card_slide = next(
+                (
+                    item.get("slide")
+                    for item in sorted(
+                        seg_map["segments"], key=lambda item: item["order"]
+                    )
+                    if item.get("id") == "END-card"
+                ),
+                None,
+            )
+            if args.issue >= CONTRACT_NEW_EFFECTIVE_DATE and not end_card_slide:
+                print("[error] new ending contract requires END-card slide")
+                return 1
+            if args.issue >= CONTRACT_NEW_EFFECTIVE_DATE:
+                image2 = f"assets/slides/{end_card_slide}.png"
+            else:
+                image2 = f"assets/slides/{LEGACY_ENDING_SLIDE}.png"
+            segments.append({
+                "order": meta["order"],
+                "id": sid,
+                "slide": slide,
+                "image": image,
+                "audio": f"audio/{fixed_ending.name}",
+                "durationSec": round(float(fixed_meta["durationSec"]), 3),
+                "timingSource": "measured",
+                "title": meta.get("title", sid),
+                "corner": corner,
+                "sting": False,
+                "sentences": [],
+                "stateKey": f"{slide}:{state}" if slide and state else f"{slide}:base",
+                "image2": image2,
+                "image2AtSec": round(float(fixed_meta["endCardAtSec"]), 3),
+                "exactDuration": True,
+            })
+            shutil.copy2(fixed_ending, pub / "audio" / fixed_ending.name)
+            continue
         # External slots (BGM-only, e.g. legacy S00-title) carry no audio and
         # no measured timing; the v3 voice-driven timeline starts at S00-intro.
         if meta.get("type") == "external":
@@ -322,10 +445,7 @@ def main() -> int:
                 "file": Path(os.path.relpath(fixed_opening, issue_dir)).as_posix(),
                 "duration": ffprobe_duration(fixed_opening),
             }
-        corner = corner_of(sid)
         unit = section_unit_of(sid)
-        slide = meta.get("slide") or None
-        cue = meta.get("cue", "")
         # Voice-driven timeline: every tts segment already carries its own
         # audio (intro/greeting wavs are pre-mixed with opening/ending BGM;
         # corner-change sting is pre-mixed into the page-head wavs).
@@ -339,7 +459,6 @@ def main() -> int:
             # longer than the narration cursor in durations.json. The visual
             # slot must cover the full mixed audio.
             dur = max(dur, ffprobe_duration(wav))
-        state, _kind = slide_state(slide, cue, sid)
         if slide is None:
             # No slide (END outro): image null -> Episode renders end card in code.
             image = None
@@ -364,36 +483,6 @@ def main() -> int:
         previous_slide = slide
         previous_corner = corner
         previous_unit = unit
-        # New ending: one reusable fixed asset already contains disclaimer,
-        # the 3.5s disclaimer hold, greeting, and looping BGM tail.
-        if sid == "END-disclaimer" and fixed_ending.is_file():
-            if not fixed_ending_meta_path.is_file():
-                print("[error] fixed ending meta missing")
-                return 1
-            fixed_meta = json.loads(fixed_ending_meta_path.read_text(encoding="utf-8-sig"))
-            segments.append({
-                "order": meta["order"],
-                "id": sid,
-                "slide": slide,
-                "image": image,
-                "audio": f"audio/{fixed_ending.name}",
-                "durationSec": round(float(fixed_meta["durationSec"]), 3),
-                "timingSource": "measured",
-                "title": meta.get("title", sid),
-                "corner": corner,
-                "sting": play_sting,
-                "sentences": sentences,
-                "stateKey": f"{slide}:{state}" if slide and state else f"{slide}:base",
-                "endCardAtSec": round(float(fixed_meta["endCardAtSec"]), 3),
-            })
-            shutil.copy2(fixed_ending, pub / "audio" / fixed_ending.name)
-            continue
-        if sid == "END-outro":
-            print("[skip] included in fixed END-disclaimer asset")
-            continue
-        # Ending slot: keep the disclaimer visual during the greeting, then
-        # fade the end card in after speech while the BGM tail keeps playing.
-        speech_end = sentences[-1]["end"] if sid in ("S39-greeting", "END-outro") and sentences else None
         segments.append({
             "order": meta["order"],
             "id": sid,
@@ -408,8 +497,8 @@ def main() -> int:
             "sentences": sentences,
             "stateKey": f"{slide}:{state}" if slide and state else f"{slide}:base",
         })
-        if speech_end is not None:
-            segments[-1]["speechEndSec"] = round(speech_end, 3)
+        if sid == "S39-greeting" and sentences:
+            segments[-1]["speechEndSec"] = round(sentences[-1]["end"], 3)
 
     # Template guarantee: the video always opens on the s0 cover. Days whose
     # segment-map already contains an s0 segment (e.g. S00-intro) pass through.

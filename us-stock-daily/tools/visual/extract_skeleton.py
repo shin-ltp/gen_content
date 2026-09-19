@@ -76,11 +76,11 @@ def main() -> int:
     html = src.read_text(encoding="utf-8-sig")
     skeleton, slices = extract(html)
 
-    SKELETON_PATH.write_text(skeleton, encoding="utf-8-sig", newline="")
+    SKELETON_PATH.write_text(skeleton, encoding="utf-8", newline="")
     data_path = src.parent / "visual-data.json"
     data_path.write_text(
         json.dumps({"date": args.date, "slices": slices}, ensure_ascii=False, indent=1),
-        encoding="utf-8-sig",
+        encoding="utf-8",
     )
     total = sum(len(v) for v in slices.values())
     print(f"skeleton -> {SKELETON_PATH} ({len(skeleton)} bytes)")

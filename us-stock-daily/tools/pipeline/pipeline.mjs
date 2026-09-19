@@ -1,4 +1,4 @@
-﻿// pipeline.mjs — 一日贯通制作流水线状态机 + 看门狗（v3，2026-09-02）
+// pipeline.mjs — 一日贯通制作流水线状态机 + 看门狗（v3，2026-09-02）
 // 所有子代理围绕 daily-output/<date>/pipeline.json 交接：谁产出谁写状态，编排者轮询 check。
 // 用法（仓库根执行）:
 //   node us-stock-daily/tools/pipeline/pipeline.mjs init   --date YYYY-MM-DD
@@ -204,6 +204,29 @@ if (cmd === 'init') {
 
 const st = load(date);
 
+// Outline-driven contract sync: a day may adopt five themes even though the
+// legacy contract stops at B4. Extend the tracked items from outline.json so
+// draft-B5/tts-B5 are never orphaned outside the watchdog.
+try {
+  const outlinePath = path.join(US_ROOT, 'daily-output', date, 'production', 'outline.json');
+  if (fs.existsSync(outlinePath)) {
+    const outline = JSON.parse(fs.readFileSync(outlinePath, 'utf8').replace(/^\uFEFF/, ''));
+    const adopted = (outline.b_candidates || []).filter(c => c.duplicate_check !== 'rejected');
+    const bCount = ITEM_DEFS.filter(([id]) => /^draft-B\d+$/.test(id)).length;
+    let addedAny = false;
+    for (let i = bCount + 1; i <= Math.min(adopted.length, 9); i++) {
+      for (const [id, stage] of [['draft-B' + i, 'write-b'], ['tts-B' + i, 'tts-b']]) {
+        if (!ITEM_DEFS.some(([eid]) => eid === id)) ITEM_DEFS.push([id, stage]);
+        if (!st.items[id]) {
+          st.items[id] = { id, stage, state: 'pending', attempts: 0, updated: new Date().toISOString(), note: '' };
+          addedAny = ensureEvent(st, id, 'added', 'auto-outline-sync') || addedAny;
+        }
+      }
+    }
+    if (addedAny && date === jstDate()) save(date, st);
+  }
+} catch { /* outline が読めない日はレガシー契約のまま */ }
+
 // Infrastructure (WSL TTS engine) bookkeeping; guard writes automatically and
 // failures must never break the startup path itself.
 if (cmd === 'engine') {
@@ -329,6 +352,18 @@ if (cmd === 'get') {
   process.exit(0);
 }
 
+if (cmd === 'alive') {
+  const now = new Date().toISOString();
+  st.updated = now;
+  st.last_alive = now;
+  for (const it of Object.values(st.items)) {
+    if (LIVE.has(it.state)) it.updated = now;
+  }
+  save(date, st);
+  console.log('[pipeline] heartbeat ' + now);
+  process.exit(0);
+}
+
 if (cmd === 'status') {
   console.log('date=' + st.date + ' now(JST)=' + jstHHMM() + ' last_alive=' + st.last_alive);
   for (const [id] of ITEM_DEFS) {
@@ -368,7 +403,14 @@ if (cmd === 'deadlines') {
     const due = h * 60 + m;
     if (nowM < due) { rows.push({ at: d.at, status: 'future', rule: d.rule }); continue; }
     const ids = DONE_ALIAS[d.need] || [d.need];
-    const passed = ids.some(i => st.items[i] && st.items[i].state === 'done');
+    let passed = ids.some(i => st.items[i] && st.items[i].state === 'done');
+    if (d.need === 'draft-B4' || d.need === 'tts-B4') {
+      // With five adopted themes the B4 deadline means "every B slot", so
+      // dynamically added B5 items must also be done before the row is met.
+      const prefix = d.need.startsWith('draft') ? 'draft-B' : 'tts-B';
+      const allSlots = ITEM_DEFS.map(([id]) => id).filter(id => id.startsWith(prefix));
+      passed = allSlots.length > 0 && allSlots.every(i => st.items[i] && st.items[i].state === 'done');
+    }
     rows.push({ at: d.at, status: passed ? 'met' : 'BREACH', rule: d.rule });
   }
   console.log(JSON.stringify({ now_jst: jstHHMM(), rows }, null, 2));
@@ -385,10 +427,20 @@ if (cmd === 'deadlines') {
   process.exit(rows.some(r => r.status === 'BREACH') ? 2 : 0);
 }
 
-if (cmd === 'alive') {
-  st.last_alive = new Date().toISOString();
+if (cmd === 'event') {
+  const kind = args._[1] || '';
+  const actor = args.actor || 'orchestrator';
+  const text = args.note || '';
+  if (!['dispatched', 'progress', 'collected'].includes(kind)) {
+    die('event 的第一个参数必须是 dispatched|progress|collected');
+  }
+  if (!args.id) die('event 需要 --id（pipeline item，例如 draft-B1 / tts-A）');
+  const role = kind === 'dispatched' ? 'dispatcher=' + actor : actor;
+  const note = kind + ':' + role + (text ? ' ' + text : '');
+  st.events.push({ t: new Date().toISOString(), id: args.id, from: 'event', to: kind, retry: false, note });
+  if (st.events.length > 300) st.events = st.events.slice(-300);
   save(date, st);
-  console.log('[pipeline] alive ' + st.last_alive);
+  console.log('[pipeline] event ' + kind + ' ' + args.id + ' (' + note.slice(0, 120) + ')');
   process.exit(0);
 }
 

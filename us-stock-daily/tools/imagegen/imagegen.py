@@ -1,8 +1,7 @@
-"""us-stock-daily 文生图工具：qwen-image-3.0-pro(DashScope) 主、Mac ComfyUI FLUX2 备。
+"""us-stock-daily 文生图工具：qwen-image-3.0-pro(DashScope) 主。
 
 CLI 例：
-    python imagegen.py "NVDA 数据中心 概念图" -o out/nvda.png
-    python imagegen.py "概念图" --out out/nvda.png --provider comfyui
+    python imagegen.py "NVDA 数据中心 テーマ画像" -o out/nvda.png
 """
 import argparse
 import base64

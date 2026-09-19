@@ -1,9 +1,11 @@
-﻿"""Phase 2 draft length checker (read-only).
+"""Phase 2 draft length guardrails (read-only).
 
-Checks draft narration length against the Phase 2 spec bands:
-- B theme writing target : 9-10 min (3,150-3,500 chars at 350 chars/min)
-- B theme pass band      : 7-12 min (2,450-4,200 chars)
-- B section final window : 25-40 min (8,750-14,000 chars)
+Upper bounds are hard gates. Lower bounds are advisory so a dense, complete
+answer is not rejected just for being short; quality gates still judge
+depth, completeness, and the clarity of the analytical path.
+- B theme advisory band : 7-12 min (2,450-4,200 chars at 350 chars/min)
+- B theme hard ceiling  : 12 min (4,200 chars)
+- B section final window: below 25 min is advisory; above 40 min fails
 
 Usage:
   python tools/check_draft_length.py 2026-08-19
@@ -29,6 +31,10 @@ DEFAULT_CPM = 350.0
 BAND_MIN_MIN, BAND_MAX_MIN = 7.0, 12.0
 TARGET_MIN_MIN, TARGET_MAX_MIN = 9.0, 10.0
 WINDOW_MIN_MIN, WINDOW_MAX_MIN = 25.0, 40.0
+
+# A short draft is a warning, not a length-driven rewrite signal. Depth,
+# completeness, and logical clarity are judged by the content gates.
+SHORT_AS_WARNING = True
 
 _EXCLUDED_SECTION_RE = re.compile(r"シーン表|採用素材|差戻し")
 _B_THEME_RE = re.compile(r"^(B-\d+)")
@@ -79,7 +85,7 @@ def narr_chars(text: str) -> int:
 def theme_status(chars: int, cpm: float) -> tuple[str, float]:
     minutes = chars / cpm
     if chars < BAND_MIN_MIN * cpm:
-        return "SHORT", minutes
+        return "SHORT_WARN" if SHORT_AS_WARNING else "SHORT", minutes
     if chars > BAND_MAX_MIN * cpm:
         return "LONG", minutes
     if TARGET_MIN_MIN * cpm <= chars <= TARGET_MAX_MIN * cpm:
@@ -122,20 +128,24 @@ def main() -> int:
     failed = False
     for theme, chars in themes:
         st, minutes = theme_status(chars, args.cpm)
-        mark = {"TARGET": "◎", "PASS": "○", "SHORT": "▼", "LONG": "▲"}[st]
+        mark = {"TARGET": "◎", "PASS": "○", "SHORT_WARN": "▼", "SHORT": "▼", "LONG": "▲"}[st]
         print(
             f"  {mark} {theme:<6} {chars:>6,}字  {minutes:5.1f}分  {st:<6}"
-            f"(通過帯 {band}字 / 目標 {target}字)"
+            f"(下限は目安 / 上限 {band}字 / 目標 {target}字)"
         )
-        if st in ("SHORT", "LONG"):
+        if st == "LONG":
             failed = True
 
     total_chars = sum(c for _, c in themes)
     total_min = total_chars / args.cpm
+    total_below = total_chars < WINDOW_MIN_MIN * args.cpm
+    total_over = total_chars > WINDOW_MAX_MIN * args.cpm
     print(
         f"  合計(全テーマ) {total_chars:>6,}字  {total_min:5.1f}分"
         f"  (B窓 25-40分 = {window}字)"
     )
+    if total_below:
+        print("  [warn] B total is below the advisory window; judge content quality manually.")
 
     if args.adopted:
         wanted = {w.strip() for w in args.adopted.split(",") if w.strip()}
@@ -146,12 +156,18 @@ def main() -> int:
             return 1
         sub_chars = sum(c for t, c in themes if t in wanted)
         sub_min = sub_chars / args.cpm
-        ok = WINDOW_MIN_MIN * args.cpm <= sub_chars <= WINDOW_MAX_MIN * args.cpm
+        below = sub_chars < WINDOW_MIN_MIN * args.cpm
+        over = sub_chars > WINDOW_MAX_MIN * args.cpm
+        ok = not over
+        if below:
+            ok = True
         print(
             f"  終選(採用 {len(wanted)}テーマ) {sub_chars:>6,}字  {sub_min:5.1f}分  "
             f"{'OK' if ok else 'NG'}"
         )
-        if not ok:
+        if below:
+            print("  [warn] adopted total is below the advisory window; judge content quality manually.")
+        if over:
             failed = True
 
     # Informational: A/C/D narration totals (no bands defined for them).

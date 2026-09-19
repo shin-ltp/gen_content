@@ -1,4 +1,4 @@
-﻿# search.ps1 - SearXNG query tool for Phase 0 collector (us-stock-daily)
+# search.ps1 - SearXNG query tool for Phase 0 collector (us-stock-daily)
 # Reads config from ../../.env: SEARXNG_BASE_URL (required),
 # SEARXNG_USER / SEARXNG_PASSWORD (optional - Basic Auth only sent when both are set).
 # Usage:

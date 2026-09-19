@@ -31,10 +31,10 @@ def read_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
-def write_json_bom(path: Path, value: Any) -> None:
+def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     data = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
-    path.write_bytes(b"\xef\xbb\xbf" + data.encode("utf-8"))
+    path.write_text(data, encoding="utf-8")
 
 
 def wav_duration(path: Path) -> float:
@@ -79,7 +79,7 @@ def timeline_from_work(date: str, work_dir: Path) -> list[dict]:
     return timeline
 
 
-def reconstruct(date: str) -> Path:
+def reconstruct(date: str, *, allow_missing: bool = False) -> Path:
     root = issue_dir(date)
     map_path = root / "production" / "segment-map.json"
     audio_dir = root / "production" / "audio"
@@ -127,11 +127,15 @@ def reconstruct(date: str) -> Path:
             item["sentences"] = timeline_from_work(date, work_dir)
         restored.append(item)
 
-    if missing:
+    if missing and not allow_missing:
         raise RuntimeError(
             "missing segment WAVs: " + ", ".join(missing)
             + "; run generate_audio for these segments first"
         )
+    if missing:
+        print(f"[partial] {len(missing)} segment(s) not synthesized yet; "
+              "durations.json covers existing WAVs only: "
+              + ", ".join(missing))
 
     restored.sort(key=lambda item: (item["order"], item["id"]))
     payload = {
@@ -142,7 +146,7 @@ def reconstruct(date: str) -> Path:
         "segments": restored,
         "total_duration": round(sum(float(item["duration"]) for item in restored), 3),
     }
-    write_json_bom(output, payload)
+    write_json(output, payload)
     print(f"[done] restored {len(restored)} segments -> {output}")
     return output
 
@@ -150,9 +154,12 @@ def reconstruct(date: str) -> Path:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("date", help="episode date (YYYY-MM-DD)")
+    parser.add_argument("--allow-missing", action="store_true",
+                        help="write durations for available WAVs only "
+                             "(per-batch incremental mode)")
     args = parser.parse_args()
     try:
-        reconstruct(args.date)
+        reconstruct(args.date, allow_missing=args.allow_missing)
     except (OSError, KeyError, RuntimeError, ValueError) as exc:
         print(f"[error] {exc}", file=sys.stderr)
         return 1

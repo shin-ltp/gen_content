@@ -1,4 +1,4 @@
-﻿// collect-email.mjs — Gmail 无头浏览器收集 5 份晨报
+// collect-email.mjs — Gmail 无头浏览器收集 5 份晨报
 // Playwright + persistent profile 避免每次重新登录
 // 首次运行建议 --headed 手动登录一次，后续自动复用 cookies
 import fs from 'node:fs';

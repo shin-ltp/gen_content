@@ -17,12 +17,29 @@ python -B -X utf8 tools/orchestrator/build_pipeline.py run --date YYYY-MM-DD --r
 `daily-output/<date>/episode.mp4` へ出力します。`--render` を付けない場合は、
 実行予定コマンドだけを表示します。
 
+## 分段増分 TTS
+
+原稿が一部固定できた時点で、その分だけ地図と TTS を先回しできます
+（`durations.json` は既存セグメントを保持したまま結合されます）。
+
+```powershell
+python -B -X utf8 tools/orchestrator/build_pipeline.py build-map --date YYYY-MM-DD --only draft-A
+python -B -X utf8 tools/orchestrator/build_pipeline.py commands --date YYYY-MM-DD --only draft-A
+# 出力された prepare_tts / generate_audio コマンドをそのまま実行
+```
+
+`--only` には block id（例: `draft-A` `draft-B1`）を渡します。視覚 HTML が無い段階では
+partial マップで TTS だけを進め、Remotion 前処理は全稿確定後に行います。
+
 ## 所有範囲
 
 | レイヤー | 責務 |
 |----------|------|
 | Python | ブロック順序、固定 opening/ending 契約、TTS セグメント整合、`remotion_input.json` 検証、レンダリング先 |
-| LLM | 日本語の選題分析、ニュース要約、テーマ原稿、俳句などの自然文作成 |
+| LLM | 日本語の選題分析、ニュース要約、テーマ原稿、予告文などの自然文作成 |
+
+日次は必ず `scaffold` から開始する。`scaffold` は放送日で契約を判定し、2026-09-17 以降は
+`END-card` と `END-disclaimer` を含む 3 個の fixed slots を生成する。
 
 ## 変換が失敗した場合
 

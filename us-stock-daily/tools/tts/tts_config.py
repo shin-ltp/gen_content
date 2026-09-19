@@ -1,4 +1,4 @@
-﻿"""us-stock-daily TTS pipeline configuration."""
+"""us-stock-daily TTS pipeline configuration."""
 from __future__ import annotations
 
 import os

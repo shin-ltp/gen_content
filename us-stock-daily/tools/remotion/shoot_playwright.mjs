@@ -11,7 +11,9 @@ const _require = createRequire(
 const { chromium } = _require('playwright');
 
 const ROOT = path.resolve('us-stock-daily');
-const ISSUE = process.argv[2] || '2026-09-08';
+const ISSUE =
+  process.argv[2] ||
+  new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 const ONLY = (() => {
   const i = process.argv.indexOf('--only');
   return i >= 0 ? process.argv[i + 1].split(',') : null;
@@ -27,11 +29,6 @@ const slideState = (slide, cue, segId) => {
   if (m) return [`i${m[1]}`, 'carousel'];
   m = cue.match(/news idx=(\d)/);
   if (m) return [`i${m[1]}`, 'news'];
-  if (slide === 's2') {
-    m = cue.match(/idx=(\d)/);
-    if (m) return [`i${m[1]}`, 'carousel'];
-    return [segId.includes('close') || cue.includes('stays') ? 'i3' : 'i0', 'carousel'];
-  }
   if (slide === 's33') {
     m = segId.match(/^S37-C(\d)/);
     return m ? [`i${Number(m[1]) - 1}`, 'news'] : ['i0', 'news'];

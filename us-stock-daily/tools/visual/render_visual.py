@@ -1,16 +1,17 @@
-"""Render daily-output/<date>/visual.html from visual-data.json.
+﻿"""Render daily-output/<date>/visual.html from visual-data.json.
 
 Design rule: bespoke slides live verbatim in the skeleton
 (us-stock-daily/templates/visual-skeleton.html, baseline = 2026-09-09,
 the latest Playwright-verified build). Every <div class="swrap"> in the
 skeleton carries a {{SLICE:<id>}} marker where its inner HTML goes.
 visual-data.json maps slide ids to inner HTML; the renderer splices them
-in, asserts the structural invariants (47 ordered slides, balanced divs,
+in, asserts the structural invariants (48 ordered slides, balanced divs,
 no residual markers), and writes production/visual.html + issue-root copy.
 
 The per-day model workflow is: copy yesterday's visual-data.json, update
-the data-bearing slides (S2/S3/C/D + changed B content), run this script,
-then run the DOM/screenshot checks. visual.html is never hand-edited.
+every slide referenced by episode.config.json (v3: A-p1..A-p(N+1), B/C/D,
+END-card, END-disclaimer; legacy: S2/S3/C/D + changed B content), run this
+script, then run the DOM/screenshot checks. visual.html is never hand-edited.
 
 Usage (repo root):
     python -X utf8 us-stock-daily/tools/visual/render_visual.py --date YYYY-MM-DD
@@ -30,6 +31,10 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
 REPO = Path(__file__).resolve().parents[3]
 SKELETON = REPO / "us-stock-daily" / "templates" / "visual-skeleton.html"
 MARKER = re.compile(r"\{\{SLICE:(s\d+)\}\}")
+TOOLS = REPO / "us-stock-daily" / "tools"
+sys.path.insert(0, str(TOOLS / "pipeline"))
+
+from episode_contract import CONTRACT_NEW_EFFECTIVE_DATE  # noqa: E402
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -51,11 +56,17 @@ def render(data: dict, skeleton_path: Path = SKELETON) -> str:
         html = html.replace("{{SLICE:" + slide_id + "}}", inner)
 
     residual = MARKER.findall(html)
+    referenced = set(re.findall(r'<div class="swrap" id="(s\d+)"', html))
+    if str(data.get("date", "")) >= CONTRACT_NEW_EFFECTIVE_DATE:
+        # v3 configs reference a contiguous prefix and leave unused wrappers
+        # after the ending pages empty, so only referenced pages must exist.
+        residual = [slide_id for slide_id in residual if slide_id in referenced]
     if residual:
         raise SystemExit(f"unfilled slice markers (missing from visual-data): {residual}")
 
     ids = re.findall(r'<div class="swrap" id="(s\d+)"', html)
-    want = [f"s{i}" for i in range(47)]
+    n = max(int(m.group(1)[1:]) for m in re.finditer(r'<div class="swrap" id="(s\d+)"', html))
+    want = [f"s{i}" for i in range(n + 1)]
     if ids != want:
         raise SystemExit(f"slide ids wrong: got {len(ids)} slides, order head={ids[:6]}")
     opens = len(re.findall(r"<div\b", html))
@@ -77,14 +88,25 @@ def main() -> int:
     data = json.loads(data_path.read_text(encoding="utf-8-sig"))
     html = render(data)
     if args.out:
-        Path(args.out).write_text(html, encoding="utf-8-sig", newline="")
+        Path(args.out).write_text(html, encoding="utf-8", newline="")
         print(f"rendered -> {args.out} ({len(html)} bytes)")
         return 0
     out_prod = issue / "production" / "visual.html"
     out_root = issue / "visual.html"
     for p in (out_prod, out_root):
-        p.write_text(html, encoding="utf-8-sig", newline="")
+        p.write_text(html, encoding="utf-8", newline="")
     print(f"rendered {out_prod} + {out_root.name} copy ({len(html)} bytes)")
+
+    # Render-time language gate: catch inherited typos before TTS/QA.
+    sys.path.insert(0, str(TOOLS))
+    from check_japanese import check_text, strip_html  # noqa: E402
+
+    errors, warns = check_text("visual.html", strip_html(html))
+    print(f"[language-gate] error={len(errors)} warn={len(warns)}")
+    for line in errors[:10]:
+        print("  - " + line)
+    if errors:
+        return 2
     return 0
 
 

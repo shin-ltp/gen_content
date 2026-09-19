@@ -1,4 +1,4 @@
-﻿"""Japanese TTS text normalization for Fish Audio.
+"""Japanese TTS text normalization for Fish Audio.
 
 Converts narration-layer drafts into TTS-safe Japanese:
 - strip inline citation markers

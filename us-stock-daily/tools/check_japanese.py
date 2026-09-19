@@ -1,4 +1,4 @@
-﻿"""Japanese language lint for all narration/output text of an episode.
+"""Japanese language lint for all narration/output text of an episode.
 
 Checks (per 2026-08-29 language gate revision):
   1. ERROR: Chinese-only vocabulary that must not appear in Japanese output
@@ -61,6 +61,7 @@ ERROR_VOCAB = {
     "長債": "長期債／長期国債",
     "多头": "買い方",
     "空头": "売り方",
+    "庄家": "主導的に買い集める大型投資家（文脈に応じて説明する）",
 }
 
 # Legitimate Japanese words that are wrong for this project's finance usage.
@@ -75,6 +76,7 @@ WARN_VOCAB = {
     "触媒": "カタリスト（株価材料の意味では片仮名が一般的）",
     "牛熊": "ブル・アンド・ベア（Bull & Bear の定訳）",
     "上振れ幅": "上方修正幅",
+    "端側": "オンデバイスAI（AI・半導体の文脈では「端側」を使わない）",
 }
 
 # Frequent simplified-only characters (curated: excludes kanji that are
@@ -106,12 +108,25 @@ def strip_html(text: str) -> str:
 def check_text(name: str, text: str) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warns: list[str] = []
+
+    def is_normative_mapping(match: re.Match) -> bool:
+        line_start = text.rfind("\n", 0, match.start()) + 1
+        line_end = text.find("\n", match.start())
+        if line_end < 0:
+            line_end = len(text)
+        arrow = text.find("→", line_start, line_end)
+        return arrow >= 0 and match.end() <= arrow
+
     for term, correct in ERROR_VOCAB.items():
         for m in re.finditer(re.escape(term), text):
+            if is_normative_mapping(m):
+                continue
             snippet = text[max(0, m.start() - 12) : m.end() + 12].replace("\n", " ")
             errors.append(f"{name}: 「{term}」→{correct} …{snippet}")
     for term, correct in WARN_VOCAB.items():
         for m in re.finditer(re.escape(term), text):
+            if is_normative_mapping(m):
+                continue
             snippet = text[max(0, m.start() - 12) : m.end() + 12].replace("\n", " ")
             warns.append(f"{name}: 「{term}」（{correct}）を確認 …{snippet}")
     for m in _SIMPLIFIED_RE.finditer(text):

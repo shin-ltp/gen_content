@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Composition, getInputProps, staticFile } from "remotion";
 import { Episode, totalFramesOf } from "./Episode";
 import { FPS, HEIGHT, WIDTH } from "./constants";

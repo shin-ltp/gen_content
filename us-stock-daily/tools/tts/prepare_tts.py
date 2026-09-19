@@ -1,9 +1,9 @@
-﻿"""Convert content drafts + visual slide map into per-slide TTS text files.
+"""Convert content drafts + visual slide map into per-slide TTS text files.
 
 Input:  daily-output/<date>/production/segment-map.json
         (hand-authored mapping: slide id -> narration text, voice, cue)
 Output: daily-output/<date>/production/tts/
-          NNN_<content-id>.txt   (UTF-8 BOM, Fish-safe Japanese)
+          NNN_<content-id>.txt   (UTF-8, Fish-safe Japanese)
           manifest.json          (machine readable, for generate_audio / Remotion)
           segments.md            (human review table)
 
@@ -25,6 +25,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pipeline"))
 
 from tts_config import (  # noqa: E402
     CHARS_PER_SEC_JA,
@@ -35,6 +36,7 @@ from tts_config import (  # noqa: E402
     voice_ref_paths,
 )
 from ja_tts_normalize import normalize_for_tts  # noqa: E402
+from episode_contract import CONTRACT_NEW_EFFECTIVE_DATE  # noqa: E402
 
 
 def _pause_seconds(text: str) -> float:
@@ -54,12 +56,8 @@ def _slide_ids(visual_html: Path) -> list[str]:
     return re.findall(r'<div class="swrap" id="(s\d+)"', html)
 
 
-def _write_bom(path: Path, text: str) -> None:
-    """Project rule: all text files are UTF-8 with BOM."""
-    path.write_bytes(b"\xef\xbb\xbf" + text.encode("utf-8"))
 
-
-def prepare(issue_date: str, visual: str | None = None) -> int:
+def prepare(issue_date: str, visual: str | None = None, partial: bool = False) -> int:
     issue_dir = get_issue_dir(issue_date)
     seg_map_path = issue_dir / "production" / "segment-map.json"
     if not seg_map_path.is_file():
@@ -67,13 +65,26 @@ def prepare(issue_date: str, visual: str | None = None) -> int:
         return 1
 
     seg_map = json.loads(seg_map_path.read_text(encoding="utf-8-sig"))
-    visual_name = visual or seg_map.get("visual", "visual-v2.html")
-    visual_html = issue_dir / visual_name
-    if not visual_html.is_file():
-        print(f"[error] visual html not found: {visual_html}")
-        return 1
-
-    slides = _slide_ids(visual_html)
+    # Partial mode is used while drafts are still being written.  A map that
+    # only contains locked blocks is valid without the day's final visual.
+    # The 2026-09-17 visual contract is always visual.html; ignore a stale
+    # visual-v2 name copied from an older map unless explicitly overridden.
+    if partial:
+        visual_name = "partial"
+    elif visual:
+        visual_name = visual
+    elif issue_date >= CONTRACT_NEW_EFFECTIVE_DATE:
+        visual_name = "visual.html"
+    else:
+        visual_name = seg_map.get("visual", "visual.html")
+    if partial:
+        slides: list[str] = []
+    else:
+        visual_html = issue_dir / visual_name
+        if not visual_html.is_file():
+            print(f"[error] visual html not found: {visual_html}")
+            return 1
+        slides = _slide_ids(visual_html)
     slide_set = set(slides)
 
     segments = seg_map.get("segments", [])
@@ -97,7 +108,7 @@ def prepare(issue_date: str, visual: str | None = None) -> int:
         seen_orders.add(order)
         seen_ids.add(seg_id)
 
-        if slide and slide not in slide_set:
+        if slide and not partial and slide not in slide_set:
             errors.append(f"{seg_id}: slide {slide!r} not found in {visual_name}")
         if slide:
             covered_slides.add(slide)
@@ -148,12 +159,12 @@ def prepare(issue_date: str, visual: str | None = None) -> int:
 
         if seg_type == "external":
             entry["asset_hint"] = seg.get("asset_hint", "")
-            _write_bom(tts_dir / fname, "")
+            (tts_dir / fname).write_text("", encoding="utf-8")
             files_meta.append(entry)
             continue
 
         text = normalize_for_tts(seg.get("text", ""))
-        _write_bom(tts_dir / fname, text)
+        (tts_dir / fname).write_text(text, encoding="utf-8")
         est = _estimate_sec(text)
         entry["chars"] = len(re.sub(r"\[pause (?:long|short)\]", "", text))
         entry["est_sec"] = round(est, 1)
@@ -164,6 +175,7 @@ def prepare(issue_date: str, visual: str | None = None) -> int:
     manifest = {
         "episode": issue_date,
         "visual": visual_name,
+        "partial": partial,
         "generated_at": datetime.now().isoformat(timespec="seconds"),
         "voices": seg_map.get("voices", {"default": "xiaomei"}),
         "total_chars": total_chars,
@@ -196,7 +208,7 @@ def prepare(issue_date: str, visual: str | None = None) -> int:
             f"| {f['order']:03d} | {f['file']} | {f['slide'] or '-'} "
             f"| {f['voice']} | {chars} | {est} | {f['title']} |"
         )
-    _write_bom(tts_dir / "segments.md", "\n".join(lines) + "\n")
+    (tts_dir / "segments.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     print(f"[ok] wrote {len(files_meta)} segment files -> {tts_dir}")
     print(f"[ok] narration: {total_chars:,} chars, est. {total_est / 60:.1f} min")
@@ -209,5 +221,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Prepare TTS texts from segment map")
     parser.add_argument("issue_date", help="episode date (YYYY-MM-DD)")
     parser.add_argument("--visual", default=None, help="override visual html filename")
+    parser.add_argument(
+        "--partial", action="store_true",
+        help="prepare only the segments in the map; do not require visual.html",
+    )
     args = parser.parse_args()
-    sys.exit(prepare(args.issue_date, args.visual))
+    sys.exit(prepare(args.issue_date, args.visual, args.partial))

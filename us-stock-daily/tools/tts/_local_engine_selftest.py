@@ -1,4 +1,4 @@
-﻿"""One-shot end-to-end check of FishLocalEngine against the WSL2 server.
+"""One-shot end-to-end check of FishLocalEngine against the WSL2 server.
 
 Synthesizes a short sentence for xiaomei into production/.local_engine_test/
 and prints duration + size. Safe: does not touch real episode wavs.

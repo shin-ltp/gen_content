@@ -1,4 +1,4 @@
-﻿# us-stock-daily Remotion 環境
+# us-stock-daily Remotion 環境
 
 音声駆動の番組動画レンダリング用 Remotion プロジェクト（環境構築完了）。
 タイムラインは production/audio/durations.json（TTS 実測長）駆動。

@@ -1,4 +1,4 @@
-﻿"""Fish Audio S2 Pro remote batch synthesis (Mac MLX via SSH/SCP).
+"""Fish Audio S2 Pro remote batch synthesis (Mac MLX via SSH/SCP).
 
 Adapted from tools/sample/economist-podcast/scripts/fish_audio_batch.py with
 one key change: jobs are grouped by voice (kyoujyu / xiaomei) and each voice
@@ -174,6 +174,14 @@ class FishDailyEngine:
         if worker_parent not in (".", "~", "/"):
             dirs.append(worker_parent)
         self._ssh.ssh_short("mkdir -p " + " ".join(dirs), label="SSH(mkdir)")
+        # Kill any stale worker still attached to this episode's job dir.
+        # Scope is the episode workroot, so other dates on the Mac are untouched.
+        self._ssh.ssh_short(
+            f"pkill -f '{self.remote_root}/.*/(job_manifest|launch_worker)' 2>/dev/null "
+            f"|| pkill -f '{self.remote_root}' 2>/dev/null || true",
+            label="SSH(pkill stale)",
+        )
+        time.sleep(1)
 
     def _upload_refs(self, voice: str) -> None:
         audio, meta = voice_ref_paths(voice)
@@ -353,7 +361,16 @@ class FishDailyEngine:
                 label="SSH(cleanup)",
             )
             launch_script = f"{self.remote_root}/{voice}/launch_worker.sh"
-            b64 = base64.b64encode(f"#!/bin/bash\n{inner}\n".encode()).decode()
+            # Single-instance guard: flock on the pid file keeps at most one
+            # worker per voice alive for this episode, even across restarts.
+            guard = (
+                f"if ! mkdir {paths['pid']}.lock 2>/dev/null; then "
+                "echo 'another worker holds the lock'; exit 9; fi; "
+                f"trap 'rm -rf {paths['pid']}.lock' EXIT INT TERM; "
+                f"echo $$ > {paths['pid']}; "
+                f"{inner}"
+            )
+            b64 = base64.b64encode(f"#!/bin/bash\n{guard}\n".encode()).decode()
             self._ssh.ssh_short(
                 f"echo {b64} | base64 -d > {launch_script} && chmod +x {launch_script}",
                 label="SSH(write launch)",

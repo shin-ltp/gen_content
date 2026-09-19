@@ -1,4 +1,4 @@
-﻿// collect-longbridge.mjs — longbridge CLI 一次数据收集（指数/个股/汇率/市场温度）
+// collect-longbridge.mjs — longbridge CLI 一次数据收集（指数/个股/汇率/市场温度）
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -166,7 +166,7 @@ async function run() {
     id: 'MKT-' + today.replace(/-/g,'') + '-001', category: 'market', ticker: '',
     title: '主要指数・注目銘柄・為替・市場温度スナップ（' + today + '）',
     source: 'longbridge CLI（一次データ）', source_type: 'data',
-    url: 'cli://longbridge', relevance: 'us-stock',
+    url: 'https://www.longbridge.com/', relevance: 'us-stock',
     collected_at: new Date().toISOString().slice(0,16), collector: 'collect-longbridge',
     priority: 'TBD', assets_needed: '[]', assets_status: 'none', adopted: false, status: 'verified',
     pub_date: today

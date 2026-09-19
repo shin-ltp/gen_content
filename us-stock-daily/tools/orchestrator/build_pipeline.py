@@ -17,11 +17,33 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
+from html import unescape
 from pathlib import Path
 from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pipeline"))
+
+from episode_contract import (  # noqa: E402
+    CONTRACT_EFFECTIVE_DATE,
+    CONTRACT_NEW_EFFECTIVE_DATE,
+    LEGACY_VISUAL_SLIDE_COUNT,
+    OPENING_SLIDE_ID,
+    PREVIEW_SUMMARY_MAX_CHARS,
+    PREVIEW_SUMMARY_MIN_CHARS,
+    PREVIEW_TITLE_MAX_CHARS,
+    PREVIEW_V2_DATE,
+    PREVIEW_MAX_CHARS,
+    PREVIEW_MIN_CHARS,
+    opening_end_phrase,
+    opening_theme_prefix,
+    strip_opening_end_phrase,
+    strip_opening_theme_prefix,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,7 +51,7 @@ TOOL = Path(__file__).resolve().parent
 PY = sys.executable
 CORNER_ORDER = ("opening", "market", "themes", "news", "events", "ending")
 OPENING_NARRATION_ID = "S00-intro"
-HELPER_OUTRO_ID = "END-outro"
+OBSOLETE_OUTRO_ID = "END-outro"
 BLOCK_RANGE = {
     "opening": (0, 99),
     "market": (100, 199),
@@ -44,6 +66,27 @@ MAP_PATH = Path("production/segment-map.json")
 DURATIONS_PATH = Path("production/audio/durations.json")
 INPUT_PATH = ROOT / "remotion" / "public" / "remotion_input.json"
 
+MARKET_BLOCK_ID = "A-p1"
+
+
+def market_block_id(cfg: dict) -> str:
+    """Return the opening market-summary block for the episode contract.
+
+    Episodes before 2026-09-17 pair previews with carousel cues and put the
+    market summary at A-p1. From 2026-09-17, with N themes the market
+    summary is A-p(N+1). The 2026-09-19 preview-v2 contract keeps that
+    block layout: A-p1..A-pN are the spoken title+summary previews sharing
+    s1, and A-p(N+1) is the market.
+    """
+    if str(cfg.get("episode", "")) >= CONTRACT_NEW_EFFECTIVE_DATE:
+        count = sum(
+            1 for block in cfg.get("blocks", [])
+            if re.fullmatch(r"A-p[1-9][0-9]*", str(block.get("id", "")))
+        )
+        # A-p1..A-pN are previews; the market summary is the last
+        # consecutive block, A-p(N+1) = A-p{count}.
+        return f"A-p{count}"
+    return MARKET_BLOCK_ID
 
 class PipelineError(RuntimeError):
     pass
@@ -75,10 +118,10 @@ def read_json(path: Path) -> Any:
         raise PipelineError(f"invalid JSON: {path}: {exc}") from exc
 
 
-def write_json_bom(path: Path, value: Any) -> None:
+def write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     data = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
-    path.write_bytes(b"\xef\xbb\xbf" + data.encode("utf-8"))
+    path.write_text(data, encoding="utf-8")
 
 
 def issue_dir(date: str) -> Path:
@@ -109,7 +152,12 @@ def require_unique(ids: list[str], label: str) -> None:
         raise PipelineError(f"duplicate {label}: {', '.join(duplicates)}")
 
 
-def validate_script(cfg: dict, script: dict) -> dict[str, str]:
+def validate_script(
+    cfg: dict,
+    script: dict,
+    partial_ids: set[str] | None = None,
+    validate_visual_sync: bool = True,
+) -> dict[str, str]:
     if script.get("episode") != cfg.get("episode"):
         raise PipelineError("script episode does not match config")
     items = script.get("blocks")
@@ -131,7 +179,10 @@ def validate_script(cfg: dict, script: dict) -> dict[str, str]:
         if not isinstance(text, str) or not text.strip():
             raise PipelineError(f"script block text is empty: {block_id}")
         result[block_id] = text
-    missing = sorted(expected - set(result))
+    # Partial builds validate only the requested subset so the day can start
+    # TTS while other blocks are still missing from script.json.
+    required = expected if partial_ids is None else expected & partial_ids
+    missing = sorted(required - set(result))
     extra = sorted(set(result) - expected)
     if missing:
         raise PipelineError(f"script is missing blocks: {', '.join(missing)}")
@@ -146,7 +197,472 @@ def validate_script(cfg: dict, script: dict) -> dict[str, str]:
             f"Simplified Chinese found in Japanese narration: {sample}; "
             "blocks: " + ", ".join(offenders)
         )
+    result["episode"] = cfg.get("episode", "")
+    if partial_ids is None:
+        if str(cfg.get("episode", "")) >= CONTRACT_EFFECTIVE_DATE:
+            validate_opening_contract(cfg, result)
+            if str(cfg.get("episode", "")) < CONTRACT_NEW_EFFECTIVE_DATE:
+                _validate_haiku_visual_sync(result)
+            if validate_visual_sync:
+                _validate_slide_narration_sync(result, cfg)
     return result
+
+
+def _strip_pause_markers(text: str) -> str:
+    """Remove TTS-only directives and whitespace for visual/text comparison."""
+    normalized = re.sub(r"\[pause(?:\s+[a-z]+)?\]", " ", text)
+    return re.sub(r"\s+", "", normalized)
+
+
+def _narration_char_count(text: str) -> int:
+    stripped = re.sub(r"\[pause(?:\s+[a-z]+)?\]", "", text)
+    return len(re.sub(r"\s+", "", stripped))
+
+
+_FULLWIDTH_DIGITS = str.maketrans("０１２３４５６７８９", "0123456789")
+
+
+def _contains_theme_summary_phrase(text: str, expected: int) -> bool:
+    text = text.translate(_FULLWIDTH_DIGITS)
+    return (
+        opening_end_phrase(expected).rstrip("。") in text
+    )
+
+def _theme_prefix(expected: int) -> str:
+    return opening_theme_prefix(expected)
+
+
+def _preview_theme_count(cfg: dict) -> int | None:
+    """Infer the new-contract theme count from consecutive A-p numbering.
+
+    A-p1..A-pN are numbered consecutively, and the market summary follows at
+    N+1, so the theme count is the highest index minus 1. Returning None
+    keeps a malformed config from being silently accepted.
+    """
+    ids = [
+        int(re.search(r"A-p(\d+)", str(block.get("id", ""))).group(1))
+        for block in cfg.get("blocks", [])
+        if re.fullmatch(r"A-p[1-9][0-9]*", str(block.get("id", "")))
+    ]
+    if not ids or sorted(ids) != list(range(1, max(ids) + 1)):
+        return None
+    return max(ids) - 1
+
+
+def _slide_number(slide: object) -> int | None:
+    match = re.fullmatch(r"s([0-9]+)", str(slide or ""))
+    return int(match.group(1)) if match else None
+
+
+def _validate_visual_slides(cfg: dict) -> None:
+    """Keep slide ownership unique and complete for the active contract.
+
+    Legacy 57-page episodes use the archived s56 layout. The v3 contract owns
+    only the slides it references, while render_visual validates that every
+    wrapper supplied by visual-data has content.
+    """
+    block_ids = [
+        str(block.get("id", "")) for block in cfg.get("blocks", [])
+    ]
+    used_slides = [
+        str(block.get("slide", "")) for block in cfg.get("blocks", [])
+    ] + [str(slot.get("slide", "")) for slot in cfg.get("fixed_slots", [])]
+    slide_ids = [slide for slide in used_slides if slide]
+    distinct_slides = set(slide_ids)
+    numbers = [_slide_number(slide) for slide in slide_ids]
+    if any(number is None for number in numbers):
+        raise PipelineError("every content and fixed segment must own a slide id")
+    if str(cfg.get("episode", "")) < CONTRACT_NEW_EFFECTIVE_DATE:
+        expected = {f"s{number}" for number in range(LEGACY_VISUAL_SLIDE_COUNT)}
+        missing = sorted(expected - distinct_slides)
+        extra = sorted(set(slide_ids) - expected)
+        if missing:
+            raise PipelineError(
+                "legacy visual contract expects 57 slides; missing: "
+                + ", ".join(missing)
+            )
+        if extra:
+            raise PipelineError(
+                "legacy visual contract only accepts s0..s56; extra: "
+                + ", ".join(extra)
+            )
+        return
+    # Multiple C-p* highlight states share one aggregate News page. A page
+    # may serve many narration states; each block still owns exactly one page.
+    require_unique(
+        [str(block.get("id", "")) for block in cfg.get("blocks", [])],
+        "block id",
+    )
+    fixed_slots = {
+        str(slot.get("id", "")): str(slot.get("slide", ""))
+        for slot in cfg.get("fixed_slots", [])
+    }
+    if fixed_slots.get("OPENING") != OPENING_SLIDE_ID:
+        raise PipelineError(
+            "new visual contract requires fixed slot OPENING to own s0 "
+            "(the reusable title card); got "
+            + (fixed_slots.get("OPENING") or "<missing>")
+        )
+    require_unique(block_ids, "block id")
+    highest = max(number for number in numbers if number is not None)
+    expected = {f"s{number}" for number in range(1, highest + 1)}
+    missing = sorted(expected - distinct_slides)
+    if missing:
+        raise PipelineError(
+            "new visual contract owns consecutive slides s1..s"
+            f"{highest}; missing: " + ", ".join(missing)
+        )
+    preview_slides = {
+        int(re.search(r"A-p(\d+)", str(block.get("id", ""))).group(1)): (
+            _slide_number(block.get("slide")),
+            str(block.get("cue", "")),
+        )
+        for block in cfg.get("blocks", [])
+        if re.fullmatch(r"A-p[1-9][0-9]*", str(block.get("id", "")))
+    }
+    expected_count = _preview_theme_count(cfg)
+    if expected_count is not None:
+        if str(cfg.get("episode", "")) >= PREVIEW_V2_DATE:
+            preview_slides = {
+                number: value for number, value in preview_slides.items()
+                if number <= expected_count
+            }
+        if str(cfg.get("episode", "")) >= PREVIEW_V2_DATE:
+            bad = [
+                f"A-p{number}->s{slide}(cue={cue or 'none'})"
+                for number, (slide, cue) in preview_slides.items()
+                if slide != 1 or cue != f"carousel idx={number - 1}"
+            ]
+            if bad:
+                raise PipelineError(
+                    "preview-v2 opening blocks must share s1 with ordered "
+                    "carousel cues idx=0..N-1; got " + ", ".join(bad)
+                )
+        else:
+            bad = [
+                f"A-p{number}->s{slide}"
+                for number, (slide, _cue) in preview_slides.items()
+                if slide != number
+            ]
+            if bad:
+                raise PipelineError(
+                    "new opening preview slides must own s1..sN in order; got "
+                    + ", ".join(bad)
+                )
+
+
+def validate_opening_contract(cfg: dict, narration: dict[str, str]) -> None:
+    """Opening narration contract added after the 2026-09-10 review.
+
+    Preview blocks are the A-p blocks paired with carousel cues in
+    episode.config.json. A-p1 is the optional prior-market summary and other
+    A-p blocks are not part of the theme list.
+
+    From 2026-09-17 the A-p1..A-pN previews own slides s1..sN and the
+    market summary owns s(N+1). From 2026-09-19 all previews share the one
+    aggregate s1 list and use ordered carousel cues.
+    """
+    new_contract = str(cfg.get("episode", "")) >= CONTRACT_NEW_EFFECTIVE_DATE
+    if new_contract:
+        expected_count = _preview_theme_count(cfg)
+        if expected_count is None or expected_count < 1:
+            raise PipelineError(
+                "new opening contract requires consecutive A-p1..A-p(N+1) "
+                "blocks; cannot infer the preview count"
+            )
+        preview_blocks = sorted(
+            (block for block in cfg.get("blocks", [])
+             if re.fullmatch(r"A-p[1-9][0-9]*", str(block.get("id", "")))
+             and int(re.search(r"A-p(\d+)", str(block.get("id", ""))).group(1))
+             <= expected_count),
+            key=lambda block: block["order"],
+        )
+    else:
+        preview_blocks = sorted(
+            (block for block in cfg.get("blocks", [])
+             if re.fullmatch(r"A-p([2-9]|[1-9][0-9])", str(block.get("id", "")))
+             and str(block.get("cue", "")).startswith("carousel")),
+            key=lambda block: block["order"],
+        )
+    preview_ids = [block["id"] for block in preview_blocks if block["id"] in narration]
+    if preview_ids:
+        theme_count = len(preview_ids)
+        joined = "".join(narration[block_id] for block_id in preview_ids)
+        first_text = narration[preview_ids[0]]
+        if not _strip_pause_markers(first_text).startswith(
+            _theme_prefix(theme_count)
+        ):
+            raise PipelineError(
+                f"A.2 opening fixed phrase is missing or N differs: "
+                f"{preview_ids[0]} must start with "
+                + opening_theme_prefix(theme_count)
+            )
+        last_text = narration[preview_ids[-1]]
+        if not _contains_theme_summary_phrase(last_text, theme_count):
+            raise PipelineError(
+                f"A.2 closing fixed phrase is missing or N differs: "
+                f"{preview_ids[-1]} must end with "
+                + opening_end_phrase(theme_count)
+            )
+        if _strip_pause_markers(joined).count("今日はこの") != 1:
+            raise PipelineError("A.2 closing fixed phrase must occur exactly once")
+        preview_v2 = str(cfg.get("episode", "")) >= PREVIEW_V2_DATE
+        for block_id in preview_ids:
+            text = narration[block_id]
+            if block_id == preview_ids[0]:
+                text = strip_opening_theme_prefix(text)
+            if block_id == preview_ids[-1]:
+                text = strip_opening_end_phrase(text)
+            if preview_v2:
+                title, marker, summary = text.partition("[pause short]")
+                if not marker:
+                    raise PipelineError(
+                        f"A.2 preview must contain one [pause short] between "
+                        f"title and summary: {block_id}"
+                    )
+                title_size = _narration_char_count(title)
+                summary_size = _narration_char_count(summary)
+                if title_size < 1 or title_size > PREVIEW_TITLE_MAX_CHARS:
+                    raise PipelineError(
+                        f"A.2 preview title length out of range: {block_id} "
+                        f"is {title_size} chars (allowed 1-{PREVIEW_TITLE_MAX_CHARS})"
+                    )
+                if not (
+                    PREVIEW_SUMMARY_MIN_CHARS <= summary_size
+                    <= PREVIEW_SUMMARY_MAX_CHARS
+                ):
+                    raise PipelineError(
+                        f"A.2 preview summary length out of range: {block_id} "
+                        f"is {summary_size} chars (allowed "
+                        f"{PREVIEW_SUMMARY_MIN_CHARS}-{PREVIEW_SUMMARY_MAX_CHARS})"
+                    )
+                continue
+            size = _narration_char_count(text)
+            if not PREVIEW_MIN_CHARS <= size <= PREVIEW_MAX_CHARS:
+                raise PipelineError(
+                    f"A.2 preview length out of range: {block_id} is {size} chars "
+                    f"(allowed {PREVIEW_MIN_CHARS}-{PREVIEW_MAX_CHARS})"
+                )
+
+    market = narration.get(market_block_id(cfg))
+    if market:
+        # One index can be an example of a decisive factor; two or more in
+        # parallel is the ticker-style reading banned by content-framework A.3.
+        index_matches = re.findall(
+            r"(S&P500|S&P 500|ナスダック|NASDAQ|ダウ|ダウ工業株30種)", market
+        )
+        if len(index_matches) >= 2:
+            raise PipelineError(
+                f"A.3 market summary lists {len(index_matches)} major indexes; "
+                "keep at most one and explain the decisive factor instead"
+            )
+
+
+
+_HTML_TAG_RE = re.compile(r"<[^>]+>")
+
+# Catch whole-page narration/visual mismatches without rejecting condensed
+# on-screen titles. B pages are guarded by theme routing; other content pages
+# fail only when no content token overlaps at all.
+_NO_SLIDE_SEGMENT_IDS = {"OPENING", "END-disclaimer"}
+def _opening_no_sync_segment_ids(cfg: dict | None) -> set[str]:
+    """Opening pages whose fixed layout defeats text-overlap heuristics."""
+    ids = {"END-disclaimer"}
+    if not cfg:
+        return ids
+    if str(cfg.get("episode", "")) >= PREVIEW_V2_DATE:
+        count = _preview_theme_count(cfg)
+        if count is not None:
+            ids.update(f"A-p{i}" for i in range(1, count + 1))
+            ids.add(f"A-p{count + 1}")
+    elif str(cfg.get("episode", "")) >= CONTRACT_NEW_EFFECTIVE_DATE:
+        count = _preview_theme_count(cfg)
+        if count is not None:
+            ids.add(f"A-p{count + 1}")
+    else:
+        ids.add("A-p6")
+    return ids
+
+
+def _page_texts(visual_html: str) -> dict[str, tuple[str, str]]:
+    """Extract semantic text from each `<div class="swrap" id="sN">` page.
+
+    Returns `(content, semantic)` per page. `content` is the right-side body
+    used by B analysis pages; `semantic` excludes fixed chrome and labels and
+    is better for pages whose whole slide is one compact content block.
+    """
+    ranges = list(re.finditer(
+        r'<div class="swrap"[^>]*\bid="([^"]+)"[^>]*>', visual_html
+    ))
+    if not ranges:
+        return {}
+    pages: dict[str, tuple[str, str]] = {}
+    for index, match in enumerate(ranges):
+        start = match.end()
+        end = ranges[index + 1].start() if index + 1 < len(ranges) else len(visual_html)
+        raw = visual_html[start:end]
+        # Stop at the next wrapper even if a future renderer nests wrappers.
+        stop = raw.find('<div class="swrap"')
+        if stop >= 0:
+            raw = raw[:stop]
+
+        body = raw
+        body_match = re.search(r'<div class="body(?:\s[^"]*)?">', body)
+        if body_match:
+            body = body[body_match.start():]
+        body_text = unescape(_HTML_TAG_RE.sub(" ", body))
+        body_text = re.sub(r"\s+", " ", body_text).strip()
+
+        semantic = raw
+        for pattern in (
+            r'<div class="show-logo">.*?(?=<div class="(?:sec-title|theme-chip|opening|oc|haiku-c|body|content|carousel|visual)|</div>)',
+            r'<div class="slabel">.*?</div>',
+            r'<div class="chrome">.*?(?=<div class="(?:body|content|carousel|visual))',
+        ):
+            semantic = re.sub(pattern, " ", semantic, flags=re.DOTALL)
+        semantic_text = unescape(_HTML_TAG_RE.sub(" ", semantic))
+        semantic_text = re.sub(r"\b(?:Smart Assets|S\d+)[^\w\u3040-\u30ff\u4e00-\u9fff]*", " ", semantic_text)
+        semantic_text = re.sub(r"\s+", " ", semantic_text).strip()
+        pages[match.group(1)] = (body_text, semantic_text)
+    return pages
+
+
+def _sync_tokens(text: str) -> set[str]:
+    text = _strip_pause_markers(text)
+    text = re.sub(
+        r"[\s.,，。、！？：；・（）\[\]{}「」『』【】\-—ー/%$¥%+'\u00d7\u00f7]",
+        " ",
+        text,
+    )
+    # Latin names and Japanese terms need different tokenization: keep short
+    # Latin words as anchors, but require slightly larger kana/kanji runs.
+    tokens = set()
+    for token in re.findall(r"[A-Za-z][A-Za-z0-9&.-]{1,}|[\u3040-\u30ff]|[\u4e00-\u9fff]{2,}", text):
+        if len(token) >= 2:
+            tokens.add(token.lower())
+    return tokens
+
+
+_SYNC_STOP_TOKENS = {
+    "b", "smartassets", "market", "markets", "stock", "stocks",
+    "テーマ", "市場", "株", "米国株", "投資", "結論", "行動指針",
+    "本日", "今日", "解説", "データ", "現在", "今年",
+}
+
+
+def _theme_corner_slides(cfg: dict | None) -> dict[str, set[str]]:
+    if not cfg:
+        return {}
+    slides: dict[str, set[str]] = {}
+    for block in cfg.get("blocks", []):
+        corner = str(block.get("corner", ""))
+        slide = block.get("slide")
+        if re.fullmatch(r"B\d+", corner) and slide:
+            slides.setdefault(corner, set()).add(slide)
+    return slides
+
+
+def _validate_slide_narration_sync(
+    narration: dict[str, str], cfg: dict | None = None
+) -> None:
+    """Reject pages whose visible content is unrelated to the narration."""
+    episode = narration.get("episode", "")
+    legacy_haiku = episode < CONTRACT_NEW_EFFECTIVE_DATE
+    visual_path = issue_dir(episode) / "visual.html"
+    map_path = issue_dir(episode) / "production" / "segment-map.json"
+    if not visual_path.is_file() or not map_path.is_file():
+        return
+    pages = _page_texts(visual_path.read_text(encoding="utf-8-sig"))
+    segments = read_json(map_path).get("segments", [])
+    mismatches: list[str] = []
+    # Theme pages belong to their own B blocks. A preview and fixed narration
+    # may show a B slide, but that does not make the page semantically theirs.
+    corner_slides = _theme_corner_slides(cfg)
+    for segment in segments:
+        if segment.get("type") != "tts":
+            continue
+        segment_id = segment.get("id", "")
+        narration_text = narration.get(segment_id)
+        if not narration_text:
+            continue
+        slide_id = segment.get("slide")
+        if not slide_id:
+            if segment_id in _NO_SLIDE_SEGMENT_IDS:
+                continue
+            mismatches.append(f"{segment_id}: missing visual page reference")
+            continue
+        if slide_id not in pages:
+            mismatches.append(f"{segment_id}: missing visual page {slide_id}")
+            continue
+        if segment_id in _NO_SLIDE_SEGMENT_IDS or segment_id in _opening_no_sync_segment_ids(cfg):
+            continue
+        if legacy_haiku and segment_id == "S01-haiku":
+            continue
+        corner_match = re.fullmatch(r"(B\d+)-p\d+", segment_id)
+        if corner_match and corner_slides:
+            corner = corner_match.group(1)
+            if slide_id not in corner_slides.get(corner, set()):
+                mismatches.append(
+                    f"{segment_id}: page {slide_id} is not assigned to theme {corner}"
+                )
+                continue
+        is_theme = segment_id.startswith("B")
+        if not is_theme and any(
+            str(item.get("id", "")).startswith("B") and item.get("slide") == slide_id
+            for item in segments
+        ):
+            continue
+        body_text, semantic_text = pages[slide_id]
+        # A current B page is often a condensed hero/card, so compare against
+        # its actual analysis body. Other compact pages use the full semantic
+        # content with a looser fallback threshold.
+        page_text = body_text if is_theme else semantic_text
+        if is_theme:
+            # Exact-word overlap is too brittle for condensed analysis cards.
+            # Wrong-theme routing above is the reliable whole-page check; QA
+            # still reviews unrelated pages inside the assigned theme.
+            continue
+        tokens = {
+            token for token in _sync_tokens(narration_text)
+            if token not in _SYNC_STOP_TOKENS
+        }
+        overlaps = {token for token in tokens if token in page_text}
+        if len(tokens) >= 3 and not overlaps:
+            mismatches.append(
+                f"{segment_id} -> {slide_id}: narration/visual overlap "
+                f"0/{len(tokens)} content tokens"
+            )
+    if mismatches:
+        details = "; ".join(mismatches)
+        raise PipelineError(
+            "visual/audio page mismatch: " + details
+        )
+
+
+def _validate_haiku_visual_sync(narration: dict[str, str]) -> None:
+    """The spoken haiku and the rendered haiku must cover the same text."""
+    haiku = narration.get("S01-haiku")
+    if not haiku:
+        return
+    issue = issue_dir(narration["episode"])
+    visual_path = issue / "visual.html"
+    tts_path = issue / "production" / "tts" / "001_S01-haiku.txt"
+    if not visual_path.is_file():
+        return
+    if tts_path.is_file():
+        spoken_text = _strip_pause_markers(tts_path.read_text(encoding="utf-8-sig"))
+    else:
+        spoken_text = _strip_pause_markers(haiku)
+    html = visual_path.read_text(encoding="utf-8-sig")
+    match = re.search(r'<div class="haiku">(.*?)</div>', html, re.DOTALL)
+    if not match:
+        raise PipelineError("visual.html s1 has no <div class=\"haiku\"> text")
+    screen_text = re.sub(r"\s+", "", re.sub(r"<br\s*/?>", "", match.group(1)))
+    if spoken_text != screen_text:
+        raise PipelineError(
+            "haiku visual/audio mismatch: visual="
+            f"{screen_text!r}; spoken={spoken_text!r}"
+        )
 
 
 def fixed_segment(slot: dict, kind: str) -> dict:
@@ -155,6 +671,11 @@ def fixed_segment(slot: dict, kind: str) -> dict:
         "id": slot["id"],
         "slide": slot["slide"],
     }
+    if slot.get("visual") == "end-card":
+        if kind != "ending":
+            raise PipelineError("END-card fixed slot must belong to the ending corner")
+        segment.update({"type": "external", "title": "Ending card visual"})
+        return segment
     if kind == "opening":
         segment.update(
             {
@@ -168,10 +689,9 @@ def fixed_segment(slot: dict, kind: str) -> dict:
         raise PipelineError(f"ending fixed source is invalid: {slot['source']}")
     segment.update(
         {
-            "type": "tts",
-            "voice": slot["voice"],
-            "title": "Ending fixed narration",
-            "text": slot["text"],
+            "type": "external",
+            "title": "Ending fixed visual and audio timeline",
+            "asset_hint": slot["source"],
         }
     )
     return segment
@@ -182,34 +702,10 @@ def build_segment_map(cfg: dict, narration: dict[str, str]) -> dict:
     segments = [fixed_segment(slot, corners[slot["corner"]]["kind"])
                 for slot in cfg["fixed_slots"]]
     for block in sorted(cfg["blocks"], key=lambda item: item["order"]):
+        if block["id"] not in narration:
+            continue
         kind = corners[block["corner"]]["kind"]
         if kind == "ending":
-            if block["id"] == HELPER_OUTRO_ID:
-                if block.get("source") == "assets/audio/fixed/ending.wav":
-                    segments.append(
-                        {
-                            "order": block["order"],
-                            "id": block["id"],
-                            "slide": "",
-                            "type": "external",
-                            "title": block.get("title", "エンディングあいさつ"),
-                            "asset_hint": block["source"],
-                        }
-                    )
-                    continue
-                segments.append(
-                    {
-                        "order": block["order"],
-                        "id": block["id"],
-                        "slide": "",
-                        "type": "tts",
-                        "voice": block.get("voice", cfg["voices"]["default"]),
-                        "title": block.get("title", "エンディングあいさつ"),
-                        "cue": "",
-                        "source": block.get("source", ""),
-                        "text": narration[block["id"]],
-                    }
-                )
             continue
         segments.append(
             {
@@ -298,32 +794,58 @@ def validate_config(cfg: dict, date: str) -> None:
     if not isinstance(slots, list):
         raise PipelineError("fixed_slots must be an array")
     require_unique([item.get("id") for item in slots], "fixed slot id")
-    if len(slots) != 2:
-        raise PipelineError("exactly two fixed slots are required")
-    kinds = {"opening": 0, "ending": 0}
+    expected_slot_count = (
+        3 if str(cfg.get("episode", "")) >= CONTRACT_NEW_EFFECTIVE_DATE else 2
+    )
+    if len(slots) != expected_slot_count:
+        raise PipelineError(
+            f"{expected_slot_count} fixed slots are required for this episode date"
+        )
+    roles = {"opening": 0, "ending": 0}
     for slot in slots:
-        for key in ("id", "corner", "order", "slide", "voice", "source"):
+        required = ("id", "corner", "order", "slide")
+        if slot.get("visual") != "end-card":
+            required += ("source",)
+        for key in required:
             if key not in slot:
                 raise PipelineError(f"fixed slot is missing {key}: {slot.get('id', '?')}")
         if slot["corner"] not in corner_by_id:
             raise PipelineError(f"unknown fixed-slot corner: {slot['corner']}")
         kind = corner_by_id[slot["corner"]]["kind"]
-        if kind not in kinds:
+        if kind not in roles:
             raise PipelineError("fixed slots must belong to opening/ending corners")
-        kinds[kind] += 1
+        if slot.get("visual") == "end-card":
+            if kind != "ending":
+                raise PipelineError("END-card fixed slot must belong to the ending corner")
+            continue
+        roles[kind] += 1
         if slot["source"] not in ("assets/audio/fixed/opening.wav", "assets/audio/fixed/ending.wav"):
             raise PipelineError(f"invalid fixed source: {slot['source']}")
-    if any(count != 1 for count in kinds.values()):
+    if roles != {"opening": 1, "ending": 1}:
         raise PipelineError("opening and ending each require one fixed slot")
-    ending_corner_id = next(item["id"] for item in corners if item["kind"] == "ending")
-    helper = next((block for block in blocks if block.get("id") == HELPER_OUTRO_ID), None)
-    if helper is not None and helper["corner"] != ending_corner_id:
-        raise PipelineError(f"{HELPER_OUTRO_ID} must belong to the ending corner")
-    ending = next(slot for slot in slots if corner_by_id[slot["corner"]]["kind"] == "ending")
+    helper = next((block for block in blocks if block.get("id") == OBSOLETE_OUTRO_ID), None)
+    if helper is not None:
+        raise PipelineError("END-outro is obsolete; the fixed ending contains the greeting")
+    ending = next(
+        slot for slot in slots
+        if corner_by_id[slot["corner"]]["kind"] == "ending"
+        and slot.get("visual") != "end-card"
+    )
     if ending["id"] != "END-disclaimer":
         raise PipelineError("ending slot id must be END-disclaimer")
     if ending["source"] != "assets/audio/fixed/ending.wav":
         raise PipelineError("ending slot source must be the reusable ending wav")
+    if ending.get("visual_only") is not True:
+        raise PipelineError("ending slot must be visual_only; do not voice the disclaimer")
+    if ending.get("text"):
+        raise PipelineError("ending slot must not contain narration text")
+    if str(cfg.get("episode", "")) >= CONTRACT_NEW_EFFECTIVE_DATE:
+        end_card = next((slot for slot in slots if slot.get("id") == "END-card"), None)
+        if end_card is None:
+            raise PipelineError("new ending contract requires an END-card fixed slot")
+        if end_card.get("visual") != "end-card":
+            raise PipelineError("END-card fixed slot must use visual=end-card")
+    _validate_visual_slides(cfg)
     visuals = cfg["visuals"]
     if visuals.get("html") != "visual.html":
         raise PipelineError("visuals.html must be visual.html")
@@ -419,12 +941,14 @@ def scaffold_contracts(date: str, from_map: bool) -> None:
                 running[corner] = index
                 if kind == "themes":
                     theme_order = order + 1
-        haiku_id = "S01-haiku"
-        blocks.insert(1, {
-            "id": haiku_id, "corner": "OP", "order": 1, "slide": "s1",
-            "voice": "kyoujyu", "title": "Opening haiku", "cue": "", "source": "opening haiku",
-        })
-        canonical["opening"] = [haiku_id] + canonical["opening"]
+        if date < CONTRACT_NEW_EFFECTIVE_DATE:
+            haiku_id = "S01-haiku"
+            blocks.insert(1, {
+                "id": haiku_id, "corner": "OP", "order": 1, "slide": "s1",
+                "voice": "kyoujyu", "title": "Opening haiku", "cue": "",
+                "source": "opening haiku",
+            })
+            canonical["opening"] = [haiku_id] + canonical["opening"]
         blocks.sort(key=lambda item: (item["order"], item["id"]))
         cfg = {
             "episode": date,
@@ -439,8 +963,8 @@ def scaffold_contracts(date: str, from_map: bool) -> None:
                 },
                 {
                     "id": "END-disclaimer", "corner": "ED", "order": 900, "slide": "s47",
-                    "voice": "kyoujyu", "source": "assets/audio/fixed/ending.wav",
-                    "text": "免責事項を含む固定エンディング",
+                    "source": "assets/audio/fixed/ending.wav",
+                    "visual_only": True,
                 },
             ],
             "visuals": {"html": "visual.html", "slide_id_pattern": "^s[0-9]+$"},
@@ -452,7 +976,7 @@ def scaffold_contracts(date: str, from_map: bool) -> None:
                 "remotion_input": "remotion/public/remotion_input.json",
             },
         }
-        write_json_bom(cfg_path, cfg)
+        write_json(cfg_path, cfg)
     else:
         raise PipelineError("no config exists; use --from-map for the first conversion")
 
@@ -476,14 +1000,16 @@ def scaffold_contracts(date: str, from_map: bool) -> None:
             text = ""
         script_blocks.append({"id": sid, "text": text})
     script = {"episode": date, "language": "ja-JP", "source": source, "blocks": script_blocks}
-    write_json_bom(script_file, script)
+    write_json(script_file, script)
     print(f"[scaffold] {'kept' if existing_cfg else 'created'} {cfg_path}")
     print(f"[scaffold] wrote {script_file} ({len(script_blocks)} blocks)")
 
 
-def build_map_command(cfg: dict, date: str) -> dict:
-    return {
+def build_map_command(cfg: dict, date: str, only: list[str] | None = None) -> dict:
+    partial = bool(only)
+    cmd: dict = {
         "episode": date,
+        "partial": partial,
         "prepare_tts": [
             str(PY), str(ROOT / "tools" / "tts" / "prepare_tts.py"),
             date,
@@ -503,6 +1029,11 @@ def build_map_command(cfg: dict, date: str) -> dict:
         "remotion_cwd": str(ROOT / "remotion"),
         "episode_dir": str(issue_dir(date)),
     }
+    if partial:
+        cmd["only"] = sorted(set(only or []))
+        cmd["prepare_tts"].append("--partial")
+        cmd["generate_audio"].extend(["--only", *cmd["only"]])
+    return cmd
 
 
 def artifact_errors(date: str) -> list[str]:
@@ -540,6 +1071,26 @@ def artifact_errors(date: str) -> list[str]:
 
     durations = read_json(durations_path(date))
     measured = {item.get("id"): item for item in durations.get("segments", [])}
+    stale_paths = []
+    for segment in expected:
+        if segment["type"] != "tts":
+            continue
+        tts_file = issue_dir(date) / "production" / "tts" / f"{segment['id']}.txt"
+        if not tts_file.is_file():
+            continue
+        if tts_file.stat().st_mtime_ns < script_file.stat().st_mtime_ns:
+            stale_paths.append(str(tts_file.relative_to(issue_dir(date))))
+        item = measured.get(segment["id"])
+        audio_rel = item.get("file", "") if item else ""
+        audio_file = issue_dir(date) / audio_rel if audio_rel else None
+        if audio_file and audio_file.is_file() and audio_file.stat().st_mtime_ns < tts_file.stat().st_mtime_ns:
+            stale_paths.append(str(audio_file.relative_to(issue_dir(date))))
+    if stale_paths:
+        errors.append(
+            "stale generated artifacts (regenerate audio): "
+            + ", ".join(stale_paths)
+        )
+
     for segment in expected:
         if segment["type"] != "tts":
             continue
@@ -554,12 +1105,15 @@ def artifact_errors(date: str) -> list[str]:
     else:
         rendered = read_json(INPUT_PATH)
         segments = rendered.get("segments", [])
-        expected_ids = [
-            item["id"] for item in expected if item["type"] == "tts"
-            and item["id"] != HELPER_OUTRO_ID
-        ]
+        expected_ids = [item["id"] for item in expected if item["type"] == "tts"]
         if (ROOT / "assets/audio/fixed/opening.wav").is_file():
-            expected_ids.insert(0, OPENING_NARRATION_ID)
+            # prepare_remotion injects the fixed opening as S00-intro when the
+            # map has no opening narration segment.
+            expected_ids.insert(0, "S00-intro")
+        if (ROOT / "assets/audio/fixed/ending.wav").is_file():
+            # The visual-only ending slot carries the reusable fixed ending
+            # audio and is always the final Remotion segment.
+            expected_ids.append("END-disclaimer")
         rendered_ids = [item.get("id") for item in segments]
         if rendered_ids[:1] != [expected_ids[0]]:
             errors.append("render input does not start with the ending/opening contract segment")
@@ -575,8 +1129,16 @@ def artifact_errors(date: str) -> list[str]:
     return errors
 
 
+def resolve_windows_launcher(command: str) -> str:
+    """Resolve npm launchers; CreateProcess does not search PATHEXT."""
+    if os.name != "nt" or Path(command).suffix or Path(command).is_absolute():
+        return command
+    return shutil.which(command) or command
+
+
 def run_checked(args: list[str], cwd: Path | None = None) -> None:
     print("[run] " + " ".join(args))
+    args = [resolve_windows_launcher(args[0]), *args[1:]]
     result = subprocess.run(args, cwd=cwd)
     if result.returncode != 0:
         raise PipelineError(f"command failed ({result.returncode}): {' '.join(args)}")
@@ -585,8 +1147,11 @@ def run_checked(args: list[str], cwd: Path | None = None) -> None:
 def run_pipeline(date: str, render: bool) -> None:
     cfg = read_json(config_path(date))
     validate_config(cfg, date)
-    narration = validate_script(cfg, read_json(script_path(date)))
-    write_json_bom(map_path(date), build_segment_map(cfg, narration))
+    narration = validate_script(
+        cfg, read_json(script_path(date)), validate_visual_sync=False
+    )
+    write_json(map_path(date), build_segment_map(cfg, narration))
+    _validate_slide_narration_sync(narration, cfg)
     commands = build_map_command(cfg, date)
     run_checked(commands["prepare_tts"])
     run_checked(commands["generate_audio"])
@@ -614,6 +1179,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--date", required=True)
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--from-map", action="store_true", help="scaffold script.json from an existing map")
+    parser.add_argument("--only", nargs="+", default=None,
+                        help="build map/commands for these block ids only")
     return parser.parse_args()
 
 
@@ -628,15 +1195,26 @@ def main() -> int:
         if args.command == "validate":
             validate_script(cfg, read_json(script_path(date)))
         elif args.command == "build-map":
-            write_json_bom(map_path(date), build_segment_map(cfg, validate_script(cfg, read_json(script_path(date)))))
-            print(f"[done] {map_path(date)}")
+            raw_script = read_json(script_path(date))
+            if args.only:
+                narration = validate_script(cfg, raw_script, set(args.only))
+                unknown = sorted(set(args.only) - set(narration))
+                if unknown:
+                    raise PipelineError("unknown --only blocks: " + ", ".join(unknown))
+                write_json(map_path(date), build_segment_map(cfg, {k: narration[k] for k in args.only}))
+                print(f"[done] partial {map_path(date)} ({len(args.only)} blocks)")
+            else:
+                narration = validate_script(cfg, raw_script, validate_visual_sync=False)
+                write_json(map_path(date), build_segment_map(cfg, narration))
+                _validate_slide_narration_sync(narration, cfg)
+                print(f"[done] {map_path(date)}")
         elif args.command == "check-artifacts":
             errors = artifact_errors(date)
             if errors:
                 raise PipelineError("artifact validation failed:\n- " + "\n- ".join(errors))
             print("[ok] artifacts match episode contract")
         elif args.command == "commands":
-            print(json.dumps(build_map_command(cfg, date), ensure_ascii=False, indent=2))
+            print(json.dumps(build_map_command(cfg, date, args.only), ensure_ascii=False, indent=2))
         elif args.command == "run":
             run_pipeline(date, args.render)
         return 0

@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -15,10 +15,10 @@
  * 3. 左図右文レイアウト: 左画像は画面高100%・左余白なし。出所は画像内下部キャプションに置き、説明文は載せない。
  * 4. 画面フッター行（出所・注釈・ページ番号・署名）は設けない。
  * 5. テンプレ構成名（A-1 / B-2 / C 等の記号）は画面に出さない。編集上の小見出し（「発端」「歴史比較」等）のみ可。
- * 6. News Highlights は一覧1画面のみ。1本ずつの詳細スライドは作成しない。
+ * 6. News Highlights は8本を1枚の一覧カードに表示し、読み上げに同期してハイライトを切替える。1本ずつの詳細スライドは作成しない。
  * 7. B セクションの各画面は右コンテンツ先頭にテーマ見出し（例: テーマ①｜長期金利と半導体急落）を表示する。
  * 8. D（直近イベント予告）は週間タイムライン1画面のみ。1日ずつの詳細スライドは作成しない。
- * 9. オープニングタイトルカード（S0）は YouTube サムネイルを兼ねる: ロゴ＋チャンネル名＋タグラインを主体内容に配置し、モバイルの一覧視認性を最優先（中央寄せ・大フォント・高コントラスト）。
+ * 9. オープニングタイトルカード（S0）は YouTube サムネイルを兼ねる: ロゴ＋チャンネル名＋メインタイトルを主体内容に配置し、モバイルの一覧視認性を最優先（中央寄せ・大フォント・高コントラスト）。
  * 10. チャートは条件付き使用（spec/vision-design.md §0.6）: 長期トレンド／周期性／歴史対照／複数指標の相互作用の4场景のみ。それ以外は純数字＋色ブロック＋段階リストを優先（L4b がチャート用版式）。
 */
 :root{
@@ -70,12 +70,6 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
 .slide-opening .host-role{font-size:15px;color:rgba(255,255,255,.55);margin-top:2px}
 .slide-opening .ochips{display:flex;gap:12px;justify-content:center;z-index:1}
 .slide-opening .ochips span{background:rgba(8,16,32,.78);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:12px 24px;font-size:25px;font-weight:800;color:#fff}
-
-/* L1b Haiku */
-.slide-haiku{background:var(--navy-deep);display:flex;align-items:center;justify-content:center;position:relative}
-.slide-haiku::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(212,175,55,.08) 0%,transparent 55%)}
-.slide-haiku .haiku-text{font-family:'Noto Serif JP',serif;font-weight:500;font-size:78px;color:var(--gold);line-height:1.9;letter-spacing:10px;text-align:center;z-index:1}
-.slide-haiku .haiku-annotation{margin-top:42px;font-size:22px;color:rgba(255,255,255,.45);text-align:center}
 
 /* L2 Market */
 .slide-market{background:var(--offwhite);padding:44px 56px;display:flex;flex-direction:column;gap:18px}
@@ -225,7 +219,6 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
   <div class="logo">SMART ASSETS 米国株</div>
   <div class="nav-links">
     <button class="active" onclick="scrollToSlide(0)">L1 オープニング</button>
-    <button onclick="scrollToSlide(1)">L1b 俳句</button>
     <button onclick="scrollToSlide(2)">L2 市場速報</button>
     <button onclick="scrollToSlide(3)">L3 目玉予告</button>
     <button onclick="scrollToSlide(4)">L4 深層分析</button>
@@ -252,14 +245,6 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
     <p class="subtitle">今日の市場を、データと洞察で読み解く</p>
   </div>
   <div class="ochips"><span>30年債 5.33%</span><span>NVDA $5,000億</span><span>FRB 9対3</span><span>K型消費</span></div>
-</div>
-
-<div class="slide slide-haiku" id="slide-1">
-  <div class="slide-label">Layout 1b — Opening haiku</div>
-  <div>
-    <div class="haiku-text">秋風や<br>金利の波に<br>葉が舞う</div>
-    <div class="haiku-annotation">— 本日の市場の一句 —</div>
-  </div>
 </div>
 
 <div class="slide slide-market" id="slide-2">
@@ -438,7 +423,7 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#141726;color:var(
     <div class="color-swatch"><div class="swatch-box" style="background:#E53935"></div><div class="swatch-label">赤（下落・警告）</div><div class="swatch-hex">#E53935</div></div>
     <div class="color-swatch"><div class="swatch-box" style="background:#43A047"></div><div class="swatch-label">緑（上昇）</div><div class="swatch-hex">#43A047</div></div>
     <div class="color-swatch"><div class="swatch-box" style="background:#FFB300"></div><div class="swatch-label">琥珀（強調）</div><div class="swatch-hex">#FFB300</div></div>
-    <div class="color-swatch"><div class="swatch-box" style="background:#D4AF37"></div><div class="swatch-label">金（俳句）</div><div class="swatch-hex">#D4AF37</div></div>
+    <div class="color-swatch"><div class="swatch-box" style="background:#D4AF37"></div><div class="swatch-label">金（装飾）</div><div class="swatch-hex">#D4AF37</div></div>
   </div>
 </div>
 

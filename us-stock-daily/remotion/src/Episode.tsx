@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import {
   AbsoluteFill,
   Audio,
@@ -19,26 +19,14 @@ import {
 import { EndCard } from "./EndCard";
 import { EpisodeInput, SegmentInput } from "./types";
 
-// B1-B4 corner pages share the same slide chrome/background. Transitions
-// inside a group must not fade the whole page; overlapping two full-slide
-// screenshots keeps identical pixels (logo, photos, layout) mathematically
-// still while only the changed region visibly dissolves.
-const CORNER_GROUP_SLIDES: Record<string, string[]> = {
-  B1: ["s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s12"],
-  B2: ["s13", "s14", "s15", "s16", "s17", "s18", "s19", "s20"],
-  B3: ["s21", "s22", "s23", "s24", "s25", "s26", "s27", "s28"],
-  B4: ["s29", "s30", "s31", "s32", "s33", "s34", "s35"],
-};
-
 const stateKeyOf = (seg: SegmentInput): string =>
   seg.stateKey ?? seg.image ?? `__no_image__:${seg.id}`;
 
 const cornerGroupOf = (seg: SegmentInput): string | null => {
-  if (!seg.slide) return null;
-  for (const [group, slides] of Object.entries(CORNER_GROUP_SLIDES)) {
-    if (slides.includes(seg.slide)) return group;
-  }
-  return null;
+  // Theme pages share slide chrome/background by B-group id, not by a
+  // hardcoded slide range, so the layout can grow or shrink per episode.
+  const match = /^B\d+-p\d+/.exec(seg.id);
+  return match ? match[0].replace(/-p\d+$/, "") : null;
 };
 
 const sameVisualGroup = (a: SegmentInput, b: SegmentInput): boolean => {
@@ -75,6 +63,15 @@ export const stingPadFrames = (
 ): number => (seg.sting ? Math.round(stingFrames ?? 180) + fps : 0);
 
 export const slotFrames = (
+  seg: SegmentInput,
+  fps: number,
+  stingFrames?: number,
+): number =>
+  seg.exactDuration
+    ? Math.max(1, Math.round(seg.durationSec * fps))
+    : segmentFrames(seg, fps) + 2 * FLIP_FRAMES + stingPadFrames(seg, fps, stingFrames);
+
+export const legacySlotFrames = (
   seg: SegmentInput,
   fps: number,
   stingFrames?: number,
@@ -168,8 +165,10 @@ const SegmentView: React.FC<{
   const frame = useCurrentFrame();
   const dur = segmentFrames(seg, fps);
   const stingFrames = Math.round(input.stingFrames ?? 180);
-  const slot = slotFrames(seg, fps, stingFrames);
-  const audioFrom = FLIP_FRAMES + stingPadFrames(seg, fps, stingFrames);
+  const slot = legacySlotFrames(seg, fps, stingFrames);
+  const audioFrom = seg.exactDuration
+    ? 0
+    : FLIP_FRAMES + stingPadFrames(seg, fps, stingFrames);
 
   const transition = transitionKindFromPrevious(seg, prev);
   const overlay = transition && prev ? (
@@ -180,8 +179,10 @@ const SegmentView: React.FC<{
     />
   ) : null;
 
-  const showEndCard =
-    seg.endCardAtSec != null && frame >= seg.endCardAtSec * fps;
+  const showImage2 =
+    seg.image2 != null &&
+    seg.image2AtSec != null &&
+    frame >= seg.image2AtSec * fps;
 
   const audioVol = (f: number) =>
     interpolate(f, [0, 8, dur - 10, dur], [0.85, 1, 1, 0], {
@@ -231,11 +232,12 @@ const SegmentView: React.FC<{
           <Audio src={staticFile(input.stingFile)} volume={stingVolume} />
         </Sequence>
       ) : null}
-      {seg.endCardAtSec != null ? (
-        showEndCard ? (
-          <EndCard input={input} speechEndSec={0} />
-        ) : null
-      ) : seg.speechEndSec != null ? (
+      {showImage2 ? (
+        <AbsoluteFill style={{ opacity: 1 }}>
+          <Img src={staticFile(seg.image2!)} width={1920} height={1080} />
+        </AbsoluteFill>
+      ) : null}
+      {!seg.exactDuration && seg.speechEndSec != null ? (
         <EndCard input={input} speechEndSec={seg.speechEndSec} />
       ) : null}
     </AbsoluteFill>
