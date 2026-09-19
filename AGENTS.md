@@ -1,4 +1,4 @@
-﻿# Project: gen-contents 言語仕様
+# Project: gen-contents 言語仕様
 
 ## 言語使用ルール
 
@@ -19,5 +19,5 @@
 - 番組の開始・終了ナレーション、免責事項: 日本語
 
 ## ファイルエンコーディング
-- 全テキストファイルは **UTF-8 (BOM付き)** で保存すること
-- PowerShell でファイルを書き込む場合は `[System.IO.File]::WriteAllText()` と `UTF8Encoding($true)` を使用し、`Set-Content` のデフォルトエンコーディング（非UTF-8）による文字化けを避けること
+- 全テキストファイルは **UTF-8（BOMなし）** で保存すること
+- PowerShell でファイルを書き込む場合は `[System.IO.File]::WriteAllText()` と `UTF8Encoding($false)` を使用し、`Set-Content` のデフォルトエンコーディング（非UTF-8）による文字化けを避けること

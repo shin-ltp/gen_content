@@ -135,7 +135,7 @@ us-stock-daily/
 > **S2 最小完了定義（2026-08-31 新設）**: `visual.html` が次を満たすとき S2 は完了とする。
 > ① 全画面が segment-map のセグメントと 1 対 1 対応 ② 全素材参照が Phase 3 Gate #3 の
 > 来历分類（fetched/cached）を満たす ③ §0.8 の A/B/C レイアウト（人物発言=split 全高・
-> 見解引用=円形・概念テーマ=split）に準拠 ④ 概念イラストがスタイルガイド（flat vector・
+> 見解引用=円形・テーマ画像=split）に準拠 ④ テーマ画像がスタイルガイド（flat vector・
 > 具体的物件・抽象 3D 禁止）に適合 ⑤ check_japanese.py PASS
 
 > **进度（2026-08-05）**: **S1 播音稿件转换已完成** — 输出 `daily-output/2026-08-04/production/broadcast-script.md`

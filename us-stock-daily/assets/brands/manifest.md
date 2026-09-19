@@ -65,6 +65,6 @@
 | capital-curve | concept | concept | daily-output/2026-08-19/assets/concepts/capital-curve.png | tools/imagegen: qwen-image-3.0-pro | 2026-08-23 | PNG | 資本曲線の概念図 1600x900（各日保管） |
 | k-shaped-consumption | concept | concept | daily-output/2026-08-19/assets/concepts/k-shaped-consumption.png | tools/imagegen: qwen-image-3.0-pro | 2026-08-23 | PNG | K型消費の概念図 1600x900（各日保管） |
 | opening-visual | concept | concept | daily-output/2026-08-19/assets/concepts/opening-visual.png | tools/imagegen: qwen-image-3.0-pro | 2026-08-23 | PNG | オープニングテーマ画像 1600x900（各日保管） |
-| opening-visual-fixed | template | template | template/opening-visual.png | daily-output/2026-08-19/assets/concepts/opening-visual.png（qwen-image 生成） | 2026-09-01 | PNG | **S0 オープニング固定背景**（ウォール街の夜景＋K線光軌）。全エピソード共通・差し替え禁止。Phase 3 で各日 assets/concepts/ へコピーして `<img src="assets/concepts/opening-visual.png">` で参照 |
+| opening-visual-fixed | template | template | template/opening-visual.png | template/opening-visual.png（qwen-image 生成由来） | 2026-09-01 | PNG | **S0 オープニング固定背景**（ウォール街の夜景＋K線光軌）。全エピソード共通・差し替え禁止。Phase 3 で各日 `assets/opening.png` へコピーして `<img src="assets/opening.png">` で参照 |
 
 <!-- 上の例行を参考に、取得の都度1行ずつ追記してください。追記なきキャッシュ追加は禁止。 -->
