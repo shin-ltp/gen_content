@@ -230,13 +230,13 @@ def capture_shots(
     """
     html_src = (issue_dir / "visual.html").read_text(encoding="utf-8")
     html_src = re.sub(r"<script>.*?</script>", "", html_src, flags=re.S)
-    ensure_local_images(issue_dir, html_src)
     if OPENING_VISUAL_ASSET in html_src:
         dst = issue_dir / OPENING_VISUAL_ASSET
         if not dst.exists():
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(OPENING_VISUAL_SRC, dst)
             print(f"[copy] {OPENING_VISUAL_ASSET} (fixed S0 background)")
+    ensure_local_images(issue_dir, html_src)
     slides_dir.mkdir(parents=True, exist_ok=True)
     # Unused v3 wrappers intentionally remain empty and are absent from the
     # segment timeline. Capture only timeline-referenced slides; carousel and

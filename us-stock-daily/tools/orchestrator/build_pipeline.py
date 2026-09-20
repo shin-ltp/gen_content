@@ -1175,7 +1175,9 @@ def run_pipeline(date: str, render: bool) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("validate", "build-map", "check-artifacts", "commands", "run", "scaffold"))
+    parser.add_argument("command", choices=(
+        "validate", "build-map", "check-artifacts", "commands", "run",
+        "scaffold", "prepare_tts", "prepare_remotion"))
     parser.add_argument("--date", required=True)
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--from-map", action="store_true", help="scaffold script.json from an existing map")
@@ -1217,6 +1219,15 @@ def main() -> int:
             print(json.dumps(build_map_command(cfg, date, args.only), ensure_ascii=False, indent=2))
         elif args.command == "run":
             run_pipeline(date, args.render)
+        elif args.command == "prepare_tts":
+            run_checked(build_map_command(cfg, date, args.only)["prepare_tts"])
+            print("[done] prepare_tts")
+        elif args.command == "prepare_remotion":
+            cmd = build_map_command(cfg, date)["prepare_remotion"]
+            if not args.render:
+                cmd = cmd + ["--skip-shots"]
+            run_checked(cmd)
+            print("[done] prepare_remotion")
         return 0
     except PipelineError as exc:
         print(f"[error] {exc}", file=sys.stderr)
