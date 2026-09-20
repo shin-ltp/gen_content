@@ -89,6 +89,30 @@ def load_segments(date: str) -> list[dict]:
     return segs
 
 
+def block_segments_from_manifest(date: str, block: str) -> list[dict]:
+    """Rebuild a lost batch's segment list from the canonical TTS manifest."""
+    all_segs = load_segments(date)
+    if block == "B":
+        return [s for s in all_segs if str(s.get("id", "")).startswith("B")]
+    return [s for s in all_segs
+            if str(s.get("id", "")).startswith(f"{block}-")]
+
+
+def resolve_batch_segments(date: str, block: str, segments: list[dict]) -> list[dict]:
+    """Never turn a damaged empty batch into an accidental full-manifest run."""
+    segs = [s for s in segments if s.get("type") == "tts"]
+    if segs:
+        return segs
+    segs = block_segments_from_manifest(date, block)
+    if not segs:
+        raise SystemExit(
+            f"[error] batch '{block}' has no segments and none match it in "
+            f"{MANIFEST_PATH}; refusing to dispatch the whole manifest")
+    print(f"[recover] batch '{block}' segments were empty; rebuilt "
+          f"{len(segs)} ids from manifest")
+    return segs
+
+
 def estimate_work(date: str, segs: list[dict]) -> dict[str, int]:
     """Character estimate per segment id (fallback 0 if txt missing)."""
     root = issue_dir(date)
@@ -248,9 +272,6 @@ def pipeline_item_for_block(block: str, date: str) -> list[str]:
 
 def update_pipeline_state(date: str, block: str, ok: bool, detail: str) -> None:
     """Mirror batch completion into pipeline.json via the state machine CLI."""
-    if date != today_jst():
-        print(f"[pipeline] skip old-date state update ({date})")
-        return
     node = shutil.which("node")
     if not node:
         print("[pipeline] node not found; skip state update")
@@ -297,7 +318,8 @@ def main() -> int:
         batch = next((b for b in queue if b.get("block") == args.batch), None)
         if not batch:
             raise SystemExit(f"[error] batch '{args.batch}' not found in queue")
-        segs = [s for s in batch.get("segments", []) if s.get("type") == "tts"]
+        segs = resolve_batch_segments(args.issue_date, args.batch,
+                                      batch.get("segments", []))
         est = estimate_work(args.issue_date, segs)
         print(f"[window] in_window={in_window} batch={args.batch} segments={len(segs)}")
         if args.dry_run:
@@ -355,14 +377,13 @@ def main() -> int:
 
     all_ok = True
     for batch in queue:
-        segs = [s for s in batch.get("segments", [])
-                if s.get("type") == "tts"]
-        if not segs:
-            continue
+        block = str(batch.get("block", "?"))
+        segs = resolve_batch_segments(args.issue_date, block,
+                                      batch.get("segments", []))
         est = estimate_work(args.issue_date, segs)
         code = process_batch(args.issue_date, segs, est, in_window,
                              force=args.force, dry_run=args.dry_run,
-                             label=f"batch-{batch.get('block', '?')}")
+                             label=f"batch-{block}")
         if code != 0:
             all_ok = False
             break

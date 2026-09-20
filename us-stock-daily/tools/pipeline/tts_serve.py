@@ -99,6 +99,33 @@ def save_queue(date: str, data: dict) -> None:
     os.replace(tmp, path)
 
 
+def repair_empty_batches(date: str, data: dict) -> tuple[dict, bool]:
+    """Replace lost empty segment lists before the queue starts a batch."""
+    from tts_dispatch import block_segments_from_manifest
+
+    changed = False
+    for batch in data.get("batches", []):
+        if batch.get("segments"):
+            continue
+        block = str(batch.get("block", "?"))
+        try:
+            segs = block_segments_from_manifest(date, block)
+        except SystemExit as exc:
+            batch["status"] = "failed"
+            batch["note"] = f"empty segments; manifest recovery failed: {exc}"
+            changed = True
+            continue
+        if segs:
+            batch["segments"] = segs
+            batch["note"] = f"empty segments rebuilt from manifest ({len(segs)})"
+            changed = True
+        else:
+            batch["status"] = "failed"
+            batch["note"] = f"empty segments; no '{block}' segments in manifest"
+            changed = True
+    return data, changed
+
+
 def _pid_alive(pid: int) -> bool:
     # os.kill(pid, 0) is NOT a liveness probe on Windows: any signal value
     # other than the CTRL_* events maps to TerminateProcess and would kill
@@ -157,7 +184,7 @@ def cmd_serve(args: argparse.Namespace) -> int:
             # Requeue it so the new runner picks the work back up instead of
             # blocking the whole queue behind a zombie state.
             recovered = load_queue(args.issue_date)
-            changed = False
+            recovered, changed = repair_empty_batches(args.issue_date, recovered)
             for b in recovered.get("batches", []):
                 if b.get("status") == "running":
                     attempts = int(b.get("attempts", 1) or 1)
@@ -183,6 +210,9 @@ def cmd_serve(args: argparse.Namespace) -> int:
     try:
         while True:
             data = load_queue(args.issue_date)
+            data, repaired = repair_empty_batches(args.issue_date, data)
+            if repaired:
+                save_queue(args.issue_date, data)
             pending = [b for b in data.get("batches", [])
                        if b.get("status") == "queued"]
             if pending:

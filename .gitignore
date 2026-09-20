@@ -24,6 +24,7 @@ __pycache__/
 .uv-python/
 .uv-cache/
 .sandbox-test/
+.runtime/
 us-stock-daily/assets/media_resources/media_assets.db
 
 # Local push debug artifacts
