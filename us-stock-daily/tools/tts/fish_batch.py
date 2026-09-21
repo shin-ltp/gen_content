@@ -307,7 +307,7 @@ class FishDailyEngine:
             raise RuntimeError(f"download incomplete, {len(missing)} wav(s) missing")
 
     # ------------------------------------------------------------- public
-    def synthesize(self, jobs: list[FishJob]) -> None:
+    def synthesize(self, jobs: list[FishJob], *, force: bool = False) -> None:
         if not jobs:
             _log("no pending segments")
             return
@@ -322,6 +322,14 @@ class FishDailyEngine:
         )
 
         self._prepare_remote(set(by_voice))
+
+        # Remote workers skip existing wav paths. On a forced rerun, stale
+        # targets must be deleted first or the worker would resend old audio.
+        if force:
+            targets = sorted({f"{self.remote_root}/{j.rel_wav}" for j in jobs})
+            for i in range(0, len(targets), 40):
+                chunk = targets[i:i + 40]
+                self._ssh.ssh_short("rm -f " + " ".join(chunk), label="SSH(rm stale)")
 
         for voice, voice_jobs in sorted(by_voice.items()):
             _log(f"=== voice: {voice} ({len(voice_jobs)} segments) ===")

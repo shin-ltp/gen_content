@@ -271,20 +271,20 @@ class ParallelFishEngine:
         )
         return local, mac
 
-    def synthesize(self, jobs: list[FishJob]) -> None:
+    def synthesize(self, jobs: list[FishJob], *, force: bool = False) -> None:
         local_jobs, mac_jobs = self._split_jobs(jobs)
         if not mac_jobs:
-            self.local_engine.synthesize(local_jobs)
+            self.local_engine.synthesize(local_jobs, force=force)
             return
         if not local_jobs:
-            self.mac_engine.synthesize(mac_jobs)
+            self.mac_engine.synthesize(mac_jobs, force=force)
             return
 
         failures: list[BaseException] = []
 
         def run(label: str, engine, engine_jobs: list[FishJob]) -> None:
             try:
-                engine.synthesize(engine_jobs)
+                engine.synthesize(engine_jobs, force=force)
             except BaseException as exc:
                 _log(f"{label} branch failed: {exc}")
                 failures.append(exc)

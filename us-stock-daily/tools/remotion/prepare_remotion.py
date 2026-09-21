@@ -65,7 +65,7 @@ def ensure_local_images(issue_dir: Path, html_src: str) -> None:
         if dst.exists():
             continue
         candidates = []
-        if parts[0] == "assets" and len(parts) >= 3:
+        if parts[0] == "assets" and len(parts) >= 2:
             candidates.append(DAILY.joinpath(*parts))
         if parts[0] == "..":
             candidates.append(DAILY.joinpath(*parts[1:]))

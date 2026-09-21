@@ -3,6 +3,7 @@
 // 用法（仓库根执行）:
 //   node us-stock-daily/tools/pipeline/pipeline.mjs init   --date YYYY-MM-DD
 //   node ... pipeline.mjs set    --date D --id ITEM --state STATE [--note "..."] [--retry] [--audit]
+//   node ... pipeline.mjs set    --date D --id ITEM --state STATE --force # 历史日期补做专用
 //   node ... pipeline.mjs set    --date D --id ITEM --state running --repair  # skipped 恢复专用
 //   node ... pipeline.mjs get    --date D [--id ITEM]
 //   node ... pipeline.mjs status --date D
@@ -232,7 +233,7 @@ try {
 if (cmd === 'engine') {
   const allowed = ['unknown', 'starting', 'ready', 'failed'];
   if (!allowed.includes(args.state)) die('--state must be one of: ' + allowed.join('|'));
-  if (date !== jstDate()) {
+  if (date !== jstDate() && !args.force) {
     console.log('[pipeline] engine: skip old-date ' + date + ' (today=' + jstDate() + ')');
     process.exit(0);
   }
@@ -295,12 +296,15 @@ if (cmd === 'set') {
   const it = st.items[args.id];
   if (!it) die('未知 id: ' + args.id + '（init 定义见 pipeline.mjs ITEM_DEFS）');
   if (!STATES.includes(args.state)) die('非法 state: ' + args.state);
-  if (date !== jstDate()) {
+  if (date !== jstDate() && !args.force) {
     const subject = '[pipeline] old-date mutation blocked';
     const text = `拒绝修改旧日期流水线: date=${date} today(JST)=${jstDate()} id=${args.id}`;
     sendContractAlert(st, subject, text, `old-date:${date}:${args.id}`);
     save(date, st);
     die(text);
+  }
+  if (date !== jstDate() && args.force) {
+    console.warn(`[pipeline] old-date mutation forced: date=${date} id=${args.id} state=${args.state}`);
   }
   if (it.state === 'done' && args.state !== 'done') {
     const text = `拒绝将已完成 item 回退: date=${date} id=${args.id} done -> ${args.state}`;

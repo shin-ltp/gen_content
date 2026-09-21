@@ -98,6 +98,62 @@ _COMPOSITOR_DIR = (
 )
 FFMPEG = shutil.which("ffmpeg") or str(_COMPOSITOR_DIR / "ffmpeg.exe")
 FIXED_AUDIO_DIR = Path(__file__).resolve().parents[2] / "assets" / "audio" / "fixed"
+_ORCHESTRATOR_DIR = Path(__file__).resolve().parents[1] / "orchestrator"
+
+
+def _segment_key(segment: dict) -> tuple:
+    return (
+        segment.get("id", ""), segment.get("order", 0), segment.get("slide", ""),
+        segment.get("type", ""), segment.get("voice", ""), segment.get("text", ""),
+    )
+
+
+def sync_segment_map(issue_date: str) -> None:
+    """Rebuild the contract map/manifest after direct text or map edits.
+
+    generate_audio consumes tts/manifest.json, while artifact validation
+    consumes segment-map.json. Rebuilding both here prevents a localized
+    script edit from leaving one of them on stale wording.
+    """
+    issue_dir = get_issue_dir(issue_date)
+    prod = issue_dir / "production"
+    cfg_path = prod / "episode.config.json"
+    script_path = prod / "script.json"
+    map_path = prod / "segment-map.json"
+    if not (cfg_path.is_file() and script_path.is_file() and map_path.is_file()):
+        return
+
+    sys.path.insert(0, str(_ORCHESTRATOR_DIR))
+    import build_pipeline  # noqa: E402
+
+    cfg = json.loads(cfg_path.read_text(encoding="utf-8-sig"))
+    script = json.loads(script_path.read_text(encoding="utf-8-sig"))
+    narration = {
+        item["id"]: item["text"] for item in script.get("blocks", [])
+        if isinstance(item, dict) and item.get("id") and isinstance(item.get("text"), str)
+    }
+    expected = build_pipeline.build_segment_map(cfg, narration)
+    current = json.loads(map_path.read_text(encoding="utf-8-sig"))
+    if ([_segment_key(s) for s in current.get("segments", [])]
+            == [_segment_key(s) for s in expected.get("segments", [])]):
+        return
+
+    print("[sync] segment-map differs from config/script; rebuilding contract")
+    map_path.write_text(
+        json.dumps(expected, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    result = subprocess.run(
+        [sys.executable, str(_ORCHESTRATOR_DIR.parent / "tts" / "prepare_tts.py"),
+         issue_date],
+        cwd=str(Path(__file__).resolve().parents[2]),
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    if result.returncode != 0:
+        raise RuntimeError(
+            "segment-map sync failed while rebuilding TTS manifest:\n"
+            + ((result.stderr or result.stdout)[-1500:])
+        )
+    print("[sync] segment-map and TTS manifest are consistent")
 
 
 # ------------------------------------------------------------------ slicing
@@ -681,6 +737,7 @@ def main() -> int:
     args = parser.parse_args()
 
     issue_dir = get_issue_dir(args.issue_date)
+    sync_segment_map(args.issue_date)
     manifest_path = issue_dir / "production" / "tts" / "manifest.json"
     if not manifest_path.is_file():
         print("[error] manifest not found; run prepare_tts.py first")
@@ -724,7 +781,7 @@ def main() -> int:
     if all_jobs:
         engine, backend = build_engine(args.issue_date, args.engine, ensure=True)
         print(f"[synth] engine: {backend} -> {engine.remote_root}")
-        engine.synthesize(all_jobs)
+        engine.synthesize(all_jobs, force=args.force)
 
     # Validate; retry failed pieces once with force.
     invalid: list[tuple[Path, dict]] = []

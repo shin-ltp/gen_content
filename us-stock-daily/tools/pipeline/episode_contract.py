@@ -68,7 +68,7 @@ def opening_theme_prefix(theme_count: int) -> str:
 def opening_end_phrase(theme_count: int) -> str:
     return (
         f"今日はこの{theme_count}つのテーマについて"
-        "とことん解説いたします。"
+        "丁寧に整理いたします。"
     )
 
 
@@ -77,7 +77,7 @@ _THEME_PREFIX_RE = re.compile(
 )
 _END_PHRASE_RE = re.compile(
     r"今日はこの[0-9一二三四五六七八九十]+つのテーマについて"
-    r"とことん解説いたします。?"
+    r"丁寧に整理いたします。?"
 )
 
 

@@ -13,6 +13,7 @@ Usage:
   python final_qa.py 2026-09-12
   python final_qa.py 2026-09-12 --skip-semantic     # mechanical only
   python final_qa.py 2026-09-12 --semantic-only     # semantic review only
+  python final_qa.py 2026-09-12 --post-render       # artifacts only, no content review
 """
 from __future__ import annotations
 
@@ -267,6 +268,46 @@ def run_semantic_review(date: str) -> dict:
     return result
 
 
+def run_post_render(date: str) -> list[dict]:
+    """Verify synthesized/rendered artifacts only. Content was QA'd pre-TTS."""
+    issue = _US_ROOT / "daily-output" / date
+    checks: list[dict] = []
+
+    def _add(name: str, passed: bool, output: str) -> None:
+        checks.append({"check": name, "passed": passed, "output": output[-2000:]})
+        icon = "PASS" if passed else "FAIL"
+        print(f"  [{icon}] {name}")
+        if not passed:
+            for line in output.strip().splitlines()[-5:]:
+                print(f"         {line}")
+
+    durations_path = issue / "production" / "audio" / "durations.json"
+    if not durations_path.is_file():
+        _add("audio_durations", False, "durations.json not found")
+    else:
+        durations = json.loads(durations_path.read_text(encoding="utf-8-sig"))
+        rows = durations.get("segments", [])
+        missing = []
+        for row in rows:
+            rel = row.get("file", "")
+            if not rel or not (issue / rel).is_file():
+                missing.append(row.get("id", "?"))
+        _add(
+            "audio_durations",
+            not missing,
+            f"{len(rows)} merged segment(s) present"
+            if not missing else "missing merged audio: " + ", ".join(missing),
+        )
+
+    episode_path = issue / "episode.mp4"
+    if episode_path.is_file() and episode_path.stat().st_size > 1_000_000:
+        _add("episode_video", True, f"episode.mp4 ({episode_path.stat().st_size} bytes)")
+    else:
+        _add("episode_video", False, "episode.mp4 missing or too small")
+
+    return checks
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Final quality gate")
     parser.add_argument("issue_date", help="episode date (YYYY-MM-DD)")
@@ -274,6 +315,8 @@ def main() -> int:
     parser.add_argument("--semantic-only", action="store_true")
     parser.add_argument("--pre-tts", action="store_true",
                         help="defer audio artifact completeness to post-tts QA")
+    parser.add_argument("--post-render", action="store_true",
+                        help="verify audio/video artifacts only; skip all content review")
     args = parser.parse_args()
 
     issue = _US_ROOT / "daily-output" / args.issue_date
@@ -288,6 +331,23 @@ def main() -> int:
         "mechanical": [],
         "semantic": None,
     }
+
+    if args.post_render:
+        report["stage"] = "post-render"
+        print("  --- post-render artifact checks ---")
+        report["mechanical"] = run_post_render(args.issue_date)
+        report_path = issue / "review" / "post-render-qa.json"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(
+            json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+        mech_failed = [c for c in report["mechanical"] if not c["passed"]]
+        print(f"\n[QA] report -> {report_path}")
+        if mech_failed:
+            print(f"[QA] FAILED: {len(mech_failed)} artifact check(s) failed")
+            return 2
+        print("[QA] PASS (artifacts)")
+        return 0
 
     if not args.semantic_only:
         print("  --- mechanical checks ---")
