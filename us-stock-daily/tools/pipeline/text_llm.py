@@ -23,9 +23,14 @@ Environment variables (.env in us-stock-daily/ or process env):
     OPENAI_COMPAT_API_KEY
     OPENAI_COMPAT_PRO_MODEL    e.g. glm-4-plus
     OPENAI_COMPAT_FLASH_MODEL  e.g. glm-4-flash
+
+Vision (image-understanding) calls reuse the same provider dispatch:
+  TEXT_LLM_VISION_MODEL        model that accepts image_url parts
+                               (default: same as the pro-tier model)
 """
 from __future__ import annotations
 
+import base64
 import json
 import os
 import re
@@ -95,6 +100,11 @@ def _model(tier: str) -> str:
     return _env("GEMINI_PRO_MODEL", "gemini-2.5-pro")
 
 
+def _vision_model() -> str:
+    """Model used for image-understanding calls (defaults to the pro model)."""
+    return _env("TEXT_LLM_VISION_MODEL") or _model("pro")
+
+
 def is_configured() -> bool:
     if _provider() == "openai_compat":
         return bool(_env("OPENAI_COMPAT_API_URL") and _env("OPENAI_COMPAT_API_KEY"))
@@ -149,11 +159,20 @@ def _call_openai_compat(
     *,
     json_mode: bool = False,
     max_tokens: int | None = None,
+    images: list[str] | None = None,
 ) -> str:
     url = _env("OPENAI_COMPAT_API_URL").rstrip("/") + "/chat/completions"
+    content: Any = prompt
+    if images:
+        # OpenAI-compatible multimodal shape: text + base64 data-URI images.
+        content = [{"type": "text", "text": prompt}]
+        for uri in images:
+            content.append(
+                {"type": "image_url", "image_url": {"url": uri}},
+            )
     body: dict[str, Any] = {
         "model": model,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": [{"role": "user", "content": content}],
     }
     if json_mode:
         body["response_format"] = {"type": "json_object"}
@@ -207,6 +226,101 @@ def _call_raw(prompt: str, tier: str, *, json_mode: bool = False) -> str:
     if _provider() == "openai_compat":
         return _call_openai_compat(prompt, model, json_mode=json_mode)
     return _call_gemini(prompt, model, json_mode=json_mode)
+
+
+def prepare_image_bytes(path: Path, max_edge: int = 512) -> bytes:
+    """Downscale an image to a review-friendly JPEG payload (keeps tokens low)."""
+    from PIL import Image
+    import io
+
+    with Image.open(path) as im:
+        im = im.convert("RGB")
+        im.thumbnail((max_edge, max_edge), Image.Resampling.LANCZOS)
+        buf = io.BytesIO()
+        im.save(buf, format="JPEG", quality=82)
+        return buf.getvalue()
+
+
+def _call_gemini_with_images(prompt: str, model: str, images: list[bytes],
+                             *, json_mode: bool = False) -> str:
+    try:
+        from google import genai
+        from google.genai import types
+    except ImportError:
+        raise RuntimeError("google-genai not installed; pip install google-genai")
+    client = genai.Client(api_key=_env("GEMINI_API_KEY"))
+    parts: list[Any] = [types.Part.from_text(text=prompt)]
+    for blob in images:
+        parts.append(types.Part.from_bytes(data=blob, mime_type="image/jpeg"))
+    config: dict[str, Any] = {}
+    if json_mode:
+        config["response_mime_type"] = "application/json"
+    response = client.models.generate_content(
+        model=model,
+        contents=[types.Content(role="user", parts=parts)],
+        config=config or None,
+    )
+    if hasattr(response, "text") and response.text:
+        return response.text.strip()
+    return ""
+
+
+def generate_json_with_images(
+    prompt: str,
+    images: list[Path],
+    tier: str = "pro",
+    *,
+    schema_hint: str | None = None,
+    max_retries: int | None = None,
+    max_edge: int = 512,
+) -> Any:
+    """Multimodal JSON call: one prompt + local images, parsed response.
+
+    `tier` is kept for signature parity but TEXT_LLM_VISION_MODEL wins.
+    """
+    if not images:
+        return generate_json(prompt, tier, schema_hint=schema_hint,
+                             max_retries=max_retries)
+    full_prompt = prompt
+    if schema_hint:
+        full_prompt += (
+            "\n\n【出力形式】有効な JSON のみを出力してください。"
+            "マークダウンのコードブロックや説明文は不要です。\n"
+            f"次の JSON Schema に厳密に従ってください:\n{schema_hint}"
+        )
+    blobs = [prepare_image_bytes(Path(p), max_edge=max_edge) for p in images]
+    if max_retries is None:
+        max_retries = _int_env("TEXT_LLM_MAX_RETRIES", 3)
+    model = _vision_model()
+    last_err: Exception | None = None
+    for attempt in range(1, max_retries + 1):
+        _rate_limit()
+        try:
+            if _provider() == "openai_compat":
+                uris = [
+                    "data:image/jpeg;base64," + base64.b64encode(b).decode("ascii")
+                    for b in blobs
+                ]
+                raw = _call_openai_compat(
+                    full_prompt, model, json_mode=True, images=uris,
+                )
+            else:
+                raw = _call_gemini_with_images(
+                    full_prompt, model, blobs, json_mode=True,
+                )
+            if not raw:
+                raise RuntimeError("empty vision response")
+            return _parse_json_loose(raw)
+        except Exception as e:  # noqa: BLE001 - retry loop owns degradation
+            last_err = e
+        if attempt < max_retries:
+            wait = min(60, 2 ** attempt * 5)
+            print(f"[text_llm] vision attempt {attempt}/{max_retries} failed: "
+                  f"{str(last_err)[:200]}; retry in {wait}s", flush=True)
+            time.sleep(wait)
+    raise RuntimeError(
+        f"generate_json_with_images failed after {max_retries} attempts: {last_err}"
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -24,9 +24,9 @@ def _float_env(name: str, default: float, lo: float) -> float:
         return default
 
 
-IMG_GENERATION_PROVIDER = os.getenv("IMG_GENERATION_PROVIDER", "qwen").strip().lower()
-if IMG_GENERATION_PROVIDER not in ("qwen", "comfyui"):
-    IMG_GENERATION_PROVIDER = "qwen"
+IMG_GENERATION_PROVIDER = os.getenv("IMG_GENERATION_PROVIDER", "auto").strip().lower()
+if IMG_GENERATION_PROVIDER not in ("auto", "compat", "qwen", "comfyui"):
+    IMG_GENERATION_PROVIDER = "auto"
 
 IMG_FALLBACK = os.getenv("IMG_GENERATION_FALLBACK", "1").strip().lower() not in (
     "0",
@@ -39,6 +39,14 @@ QWEN_IMAGE_API_URL = os.getenv(
     "QWEN_IMAGE_API_URL", "https://dashscope-intl.aliyuncs.com/api/v1"
 ).strip().rstrip("/")
 QWEN_IMAGE_MODEL = os.getenv("QWEN_IMAGE_MODEL", "qwen-image-3.0-pro").strip()
+
+# OpenAI-compatible image endpoint (same key as the text LLM). This is the
+# primary local route because us-stock-daily/.env only ships OPENAI_COMPAT_*.
+OPENAI_COMPAT_API_URL = os.getenv("OPENAI_COMPAT_API_URL", "").strip().rstrip("/")
+OPENAI_COMPAT_API_KEY = os.getenv("OPENAI_COMPAT_API_KEY", "").strip()
+COMPAT_IMAGE_GENERATION_TIMEOUT = max(
+    60, int(os.getenv("COMPAT_IMAGE_GENERATION_TIMEOUT", "300"))
+)
 QWEN_IMAGE_SIZE = os.getenv("QWEN_IMAGE_SIZE", "768*1024").strip()
 try:
     QWEN_IMAGE_GENERATION_TIMEOUT = max(

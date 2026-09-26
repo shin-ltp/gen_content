@@ -7,7 +7,9 @@ Scheduling rules:
   the queue runner (tts-serve.py) starts that batch immediately while writing
   continues. Each batch is synthesized with local WSL2 and the Mac helper in
   parallel; batches themselves run serially.
-* After 10:00 JST (or if Mac is unreachable): single-engine local run.
+* Mac work is capped so the assigned chars are estimated to FINISH by 10:00
+  JST (time-based char budget from tts_config.mac_char_budget). After 10:00
+  (or if Mac is unreachable, or the budget is exhausted): local-only run.
 * If the Mac worker dies mid-batch, the Mac branch of that batch is retried on
   Mac once, then rerouted to local WSL2 (segments already cached are skipped).
 
@@ -21,10 +23,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import subprocess
 import sys
 import shutil
-from datetime import datetime, time
+from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -35,12 +39,17 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
 _TOOLS_DIR = Path(__file__).resolve().parent
 _US_ROOT = _TOOLS_DIR.parents[1]
 _TTS_DIR = _US_ROOT / "tools" / "tts"
+sys.path.insert(0, str(_TTS_DIR))
+from tts_config import (  # noqa: E402
+    MAC_WINDOW_END,
+    mac_char_budget,
+    mac_window_remaining_sec,
+)
 GENERATE = _TTS_DIR / "generate_audio.py"
 RECONSTRUCT = _TTS_DIR / "reconstruct_durations.py"
 MANIFEST_PATH = "production/tts/manifest.json"
 QUEUE_PATH = "production/tts/tts-queue.json"
 
-MAC_WINDOW_END = time(10, 0)
 PROBE_TIMEOUT = 8
 RETRY_DELAY_SECONDS = 10
 
@@ -127,8 +136,14 @@ def estimate_work(date: str, segs: list[dict]) -> dict[str, int]:
     return est
 
 
-def balanced_split(segs: list[dict], est: dict[str, int]) -> tuple[list[str], list[str]]:
-    """Longest-processing-time-first greedy split by estimated chars."""
+def balanced_split(
+    segs: list[dict], est: dict[str, int], mac_cap: int | None = None,
+) -> tuple[list[str], list[str]]:
+    """Longest-processing-time-first greedy split by estimated chars.
+
+    `mac_cap` is a hard ceiling on Mac chars (10:00 JST finish rule). Groups
+    over the ceiling are moved to local even if that unbalances the split.
+    """
     ordered = sorted((s["id"] for s in segs), key=lambda i: est.get(i, 0), reverse=True)
     load = {"local": 0, "mac": 0}
     out: dict[str, list[str]] = {"local": [], "mac": []}
@@ -136,6 +151,15 @@ def balanced_split(segs: list[dict], est: dict[str, int]) -> tuple[list[str], li
         side = "local" if load["local"] <= load["mac"] else "mac"
         out[side].append(sid)
         load[side] += est.get(sid, 0)
+    if mac_cap is not None:
+        mac_chars = load["mac"]
+        if mac_chars > mac_cap:
+            for sid in sorted(out["mac"], key=lambda i: est.get(i, 0), reverse=True):
+                if mac_chars <= mac_cap:
+                    break
+                out["mac"].remove(sid)
+                out["local"].append(sid)
+                mac_chars -= est.get(sid, 0)
     return out["local"], out["mac"]
 
 
@@ -180,8 +204,17 @@ def process_batch(date: str, batch_segs: list[dict], est: dict[str, int],
         reachable, _ = mac_reachable()
     elif in_window and dry_run:
         reachable = True
-    if not in_window or not reachable:
-        print(f"[{label}] local-only run ({len(batch_segs)} segments)")
+    cap = mac_char_budget() if (in_window and reachable) else 0
+    remaining_min = mac_window_remaining_sec() / 60.0
+    reason = None
+    if not in_window:
+        reason = "after 10:00 window"
+    elif not reachable:
+        reason = "mac unreachable"
+    elif cap <= 0:
+        reason = "mac char budget exhausted"
+    if reason:
+        print(f"[{label}] local-only run ({len(batch_segs)} segments): {reason}")
         if dry_run:
             return 0
         ids = [s["id"] for s in batch_segs]
@@ -189,7 +222,16 @@ def process_batch(date: str, batch_segs: list[dict], est: dict[str, int],
         code, _ = wait_and_report(p, f"{label}/local")
         return code
 
-    local_ids, mac_ids = balanced_split(batch_segs, est)
+    local_ids, mac_ids = balanced_split(batch_segs, est, mac_cap=cap)
+    print(f"[{label}] mac window: {remaining_min:.0f}min left / char cap {cap}")
+    if not mac_ids:
+        print(f"[{label}] local-only run ({len(batch_segs)} segments): cap {cap} too small")
+        if dry_run:
+            return 0
+        ids = [s["id"] for s in batch_segs]
+        p = run_generate(date, engine="local", only=ids, force=force)
+        code, _ = wait_and_report(p, f"{label}/local")
+        return code
     print(f"[{label}] local: {len(local_ids)} segments / "
           f"{sum(est.get(i, 0) for i in local_ids)} chars")
     print(f"[{label}] mac:   {len(mac_ids)} segments / "
@@ -252,22 +294,110 @@ def today_jst() -> str:
 def pipeline_item_for_block(block: str, date: str) -> list[str]:
     if block in ("A", "C", "D"):
         return [f"tts-{block}"]
+    if re.fullmatch(r"B\d+", block):
+        return [f"tts-{block}"]
     if block == "B":
         # One queued B batch covers every theme slot in the current outline;
-        # resolve the actual count from the final segment map ids.
+        # resolve the actual slots from segment ids (B1-p2 -> tts-B1). Slide
+        # ids must never be used here: they produced bogus tts-s12 items.
         try:
             smap = json.loads((issue_dir(date) / "production" / "segment-map.json")
                               .read_text(encoding="utf-8-sig"))
         except (OSError, json.JSONDecodeError):
             return ["tts-B1"]
-        slots = sorted({
-            seg.get("slide", "") for seg in smap.get("segments", [])
-            if seg.get("type") == "tts" and str(seg.get("id", "")).startswith("B")
-        })
+        slots = {
+            m.group(1) for seg in smap.get("segments", [])
+            if seg.get("type") == "tts"
+            for m in [re.fullmatch(r"(B\d+)-p\d+", str(seg.get("id", "")))]
+            if m
+        }
         if slots:
-            return [f"tts-{s}" for s in slots]
+            return [f"tts-{s}" for s in sorted(slots, key=lambda s: int(s[1:]))]
         return ["tts-B1"]
     return []
+
+
+def cmd_preflight(args: argparse.Namespace) -> int:
+    """Automation Step 0: check/start the local engine and probe the Mac.
+
+    Local: ready -> report; else spawn start_server_guard async (STARTED_ASYNC
+    semantics; progress lands in .runtime/tts-engine/engine-progress.json).
+    Mac: read-only SSH probe + venv/worker/dirs check. Mac degradation is a
+    warning only; dispatch falls back to local automatically.
+    """
+    import fish_local_engine
+
+    report: dict = {"date": args.issue_date, "local": {}, "mac": {}}
+    ok = True
+    try:
+        if fish_local_engine.server_ready():
+            report["local"] = {"state": "ready", "api": fish_local_engine.API_URL}
+        elif not fish_local_engine.START_GUARD.is_file():
+            report["local"] = {
+                "state": "failed",
+                "error": f"launcher missing: {fish_local_engine.START_GUARD}",
+            }
+            ok = False
+        else:
+            cmd = [
+                "powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+                "-File", str(fish_local_engine.START_GUARD),
+                "-Mode", "compile",
+                "-WaitSeconds", str(fish_local_engine.STARTUP_TIMEOUT_SEC),
+                "-PipelineDate", args.issue_date, "-NoWait",
+            ]
+            proc = subprocess.Popen(
+                cmd, cwd=str(_US_ROOT),
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+            progress = (
+                fish_local_engine.REPO_ROOT / ".runtime" / "tts-engine"
+                / "engine-progress.json"
+            )
+            report["local"] = {
+                "state": "starting",
+                "guard_pid": proc.pid,
+                "progress_file": str(progress),
+            }
+    except Exception as e:  # noqa: BLE001 - report and exit 2
+        report["local"] = {"state": "failed", "error": str(e)[:300]}
+        ok = False
+
+    reachable, detail = mac_reachable()
+    report["mac"] = {"reachable": reachable, "detail": (detail or "")[:200]}
+    if reachable:
+        workroot = os.getenv(
+            "FISH_AUDIO_TTS_REMOTE_WORKROOT", "/Users/cho/fish-audio/jobs",
+        ).strip().rstrip("/")
+        worker = os.getenv(
+            "FISH_AUDIO_TTS_REMOTE_WORKER",
+            "/Users/cho/fish-audio/scripts/fish_audio_mlx_worker.py",
+        ).strip()
+        venv = os.getenv(
+            "FISH_AUDIO_TTS_REMOTE_VENV", "/Users/cho/fish-audio/.venv",
+        ).strip()
+        remote_cmd = (
+            f"mkdir -p {workroot}/usdaily/{args.issue_date} && "
+            f"test -x {venv}/bin/python && test -f {worker} && echo MAC_READY"
+        )
+        try:
+            r = subprocess.run(
+                ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+                 mac_host(), remote_cmd],
+                capture_output=True, text=True, timeout=30,
+            )
+            ready = r.returncode == 0 and "MAC_READY" in (r.stdout or "")
+            report["mac"]["service"] = "ready" if ready else "degraded"
+            if not ready:
+                report["mac"]["detail"] = (
+                    (r.stderr or r.stdout or "").strip()[-300:]
+                )
+        except (OSError, subprocess.TimeoutExpired) as e:
+            report["mac"]["service"] = "degraded"
+            report["mac"]["detail"] = str(e)[:200]
+    print(json.dumps(report, ensure_ascii=False))
+    return 0 if ok else 2
 
 
 def update_pipeline_state(date: str, block: str, ok: bool, detail: str) -> None:
@@ -302,6 +432,11 @@ def main() -> int:
     parser.add_argument("--batch", default=None,
                         help="process a single queued batch by block id (e.g. A)")
     parser.add_argument("--force", action="store_true")
+    parser.add_argument(
+        "--preflight", action="store_true",
+        help="check/start local TTS engine (async guard) and probe the Mac "
+             "worker; print one JSON report",
+    )
     parser.add_argument("--dry-run", action="store_true",
                         help="show split plan without starting synthesis")
     parser.add_argument("--window-off", action="store_true",
@@ -311,6 +446,9 @@ def main() -> int:
     args = parser.parse_args()
     if len(args.issue_date) != 10:
         raise SystemExit("[error] issue date must be YYYY-MM-DD")
+
+    if args.preflight:
+        return cmd_preflight(args)
 
     in_window = window_open() and not args.window_off
     if args.batch:

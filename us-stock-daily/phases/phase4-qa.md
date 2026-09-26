@@ -5,6 +5,12 @@
 - **入力**: `production/draft-*.md` ＋ `assets/`
 - **出力**: `review/qa-report.md`
 
+> **2026-09-26 ゲート再編（手戻りコスト順の自動配置）**: 以下の項目のうち機械検査できるものは コードで実行され、安くて早い地点で失敗を止める。
+> - 文章系（日本語品質・簡体字・免責契約・段落番号・音声テキスト一致・字数）= `tools/pipeline/pre_tts_qa.py`。write_blocks.py がブロック投入前（`--map`）と Step 3 末尾（全量ゲート）に自動実行。**TTS合成前**に潰す。意味審査は `--semantic` advisory（exit code不変）。報告: `review/pre-tts-qa.json`
+> - 視覚・レイアウト系（素材実在・portrait円形・s1予告一覧・アスペクト比・実DOM・contact sheet）= `tools/pipeline/visual_qa_gate.py` + `visual_dom_audit.mjs`。prepare_visual_assets.py が render_visual 直後に自動実行。**Remotionレンダ前**に潰す。報告: `review/visual-gate.json`
+> - 合成系（フルデコード健全性・音画同期・Layout偏差・blank/black・END免責静止画）= `tools/pipeline/final_qa.py`。レンダ後のみ、LLMゼロ。報告: `review/final-qa.json`
+> 本チェックリストの残りの項目（選題・重複排除・数字品質・事実確認・深度等）は content contract として執筆プロンプトと `pre_tts_qa.py --semantic` が扱う。qa-agent の人力検査はゲート不合格時の復旧のみに行う。
+
 複数のレンズ（データ正確性／コンプラ／視覚整合性 等）で並列検査し、結果を1つのレポートに統合する。
 
 ---

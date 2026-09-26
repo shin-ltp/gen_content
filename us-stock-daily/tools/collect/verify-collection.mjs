@@ -27,7 +27,7 @@ export function scanCollection(dir) {
     for (const ent of fs.readdirSync(d, { withFileTypes: true })) {
       const p = path.join(d, ent.name);
       if (ent.isDirectory()) { walk(p); continue; }
-      if (/\.(tmp|partial)$/.test(ent.name) || /\.tmp-\d+(-\d+)?$/.test(ent.name) || /^~\$/.test(ent.name)) {
+      if (/\.(tmp|partial|bak)$/.test(ent.name) || /\.tmp-\d+(-\d+)?$/.test(ent.name) || /^~\$/.test(ent.name)) {
         junk.push(p); continue;
       }
       if (ent.name.endsWith('.md') && ent.name !== '00-manifest.md') files.push(p);

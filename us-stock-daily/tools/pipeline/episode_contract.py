@@ -61,6 +61,22 @@ def is_preview_v2(date: str) -> bool:
     return str(date) >= PREVIEW_V2_DATE
 
 
+# Disclaimer contract: the disclaimer exists ONLY as the END-disclaimer
+# still image. These distinctive fragments must never appear in any
+# narration artifact (drafts, script.json, prepared tts txt, audio).
+DISCLAIMER_PHRASES = (
+    "投資判断を助ける",
+    "売買の推奨ではありません",
+    "ご自身の責任において",
+    "投資助言ではありません",
+)
+
+
+def disclaimer_hits(text: str) -> list[str]:
+    """Return disclaimer fragments found in narration text (empty = clean)."""
+    return [phrase for phrase in DISCLAIMER_PHRASES if phrase in (text or "")]
+
+
 def opening_theme_prefix(theme_count: int) -> str:
     return f"本日、{theme_count}つのテーマを取り上げます。"
 

@@ -26,7 +26,7 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#10131F;color:var(
 .slide.bright{background:var(--paper);color:var(--ink)}
 .chrome{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;justify-content:center;padding:112px 60px 84px}
 .slide.split .chrome{padding-left:calc(var(--img-width) + 54px)}
-.slide.split .body>.visual{position:absolute;left:0;top:0;width:var(--img-width);height:100%}
+.slide.split .body>.visual,.slide.split .carousel .visual{position:absolute;left:0;top:0;width:var(--img-width);height:100%}
 .slide.split .photo-frame{position:absolute;inset:0;border-radius:0;border:none;box-shadow:none}
 .slide.split .photo-frame.portrait{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(82%,580px);aspect-ratio:1;height:auto;inset:auto;border-radius:50%;border:4px solid rgba(255,255,255,.22);box-shadow:0 24px 70px rgba(0,0,0,.55)}
 .slide.split .photo-frame.portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -99,18 +99,21 @@ body{font-family:'Noto Sans JP','Inter',sans-serif;background:#10131F;color:var(
 .chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:7px 16px;font-size:18px;font-weight:600;color:rgba(255,255,255,.88)}
 .chip img{height:22px}
 .chip img.lg{height:30px}
-.preview-list .preview-grid{display:grid;grid-template-columns:40% 60%;flex:1;min-height:0}
-.preview-list .topic-list{display:flex;flex-direction:column;gap:14px}
-.preview-list .topic-item{display:flex;align-items:center;gap:22px;padding:22px 26px;border-radius:10px;background:#fff;border:1px solid rgba(0,0,0,.07)}
-.preview-list .topic-item.active{background:linear-gradient(135deg,rgba(251,192,45,.14),rgba(251,192,45,.05));border-color:var(--amber);box-shadow:0 4px 18px rgba(251,192,45,.18)}
-.preview-list .topic-number{width:52px;height:52px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:700;font-size:24px;color:var(--ink-mid);flex-shrink:0}
-.preview-list .topic-item.active .topic-number{background:var(--amber);color:var(--navy)}
-.preview-list .topic-title{font-size:33px;font-weight:600;line-height:1.35;color:var(--ink)}
-.preview-list .topic-item.dimmed{opacity:.42}
-.preview-list .photo-stack{position:relative;height:100%}
-.preview-list .photo-stack .photo-frame{position:absolute;inset:0;border-radius:0;border:none;box-shadow:none;opacity:0;pointer-events:none}
-.preview-list .photo-stack .photo-frame.active{opacity:1}
-.preview-list .photo-stack .photo-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.topic-item{display:flex;align-items:center;gap:20px;padding:21px 26px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.78)}
+.topic-item.active{background:var(--amber);border-color:#FFD54F;box-shadow:0 6px 26px rgba(251,192,45,.35);color:var(--navy)}
+.topic-item.dimmed{opacity:.62}
+.topic-number{width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-family:'Inter';font-weight:700;font-size:23px;color:rgba(255,255,255,.9);flex-shrink:0}
+.topic-item.active .topic-number{background:var(--navy);border-color:var(--navy);color:var(--amber)}
+.topic-title{font-size:29px;font-weight:600;line-height:1.4}
+.topic-item.active .topic-title{font-weight:700}
+.carousel{position:relative;display:flex;gap:34px}
+.slide.split .carousel{position:static}
+.slide.split .carousel .content{width:auto;flex:1}
+.carousel .visual{width:var(--img-width);position:relative}
+.carousel .visual .photo-frame{position:absolute;inset:0;opacity:0;transition:opacity .6s ease-in-out}
+.carousel .visual .photo-frame.active{opacity:1}
+.carousel .content{width:var(--content-width);display:flex;flex-direction:column;gap:15px;justify-content:center}
+.carousel .topic-item{transition:all .4s ease}
 .person-line{display:flex;align-items:center;gap:14px}
 .person-line img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--amber)}
 .person-line .pn{font-size:24px;font-weight:700;color:#fff}

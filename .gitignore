@@ -55,6 +55,7 @@ us-stock-daily/assets/audio/
 # One-off analysis / visual-split scratch files
 _analysis_handoff.py
 visual_0904_*.html
+.runtime-domaudit.json
 
 # App data accidentally created inside remotion/
 us-stock-daily/remotion/Tencent/

@@ -4,7 +4,8 @@ Stages (sequential, each resumable):
   1. collect   node collect-all.mjs (Gate #0 hard filter)
   2. select    analyze_topics.py (stage 0 code filter + 2 LLM calls)
   3. write     write_blocks.py     (contract + script + drafts)
-  4. qa        final_qa.py         (mechanical checks + semantic review)
+  4. qa        pre_tts_qa.py       (full narration gate: japanese/length/
+                                   disclaimer/segment-map/tts-txt)
   5. tts       tts_dispatch.py     (parallel local/Mac inside the morning window)
 
 State file: production/pipeline-progress.json with atomic writes. A crashed
@@ -133,8 +134,10 @@ def cmd_write(date: str, extra: list[str]) -> tuple[int, str]:
 
 
 def cmd_qa(date: str, extra: list[str]) -> tuple[int, str]:
-    # QA runs before TTS; audio artifacts are verified by the later render stage.
-    return run_cmd([sys.executable, str(_TOOLS_DIR / "final_qa.py"), date, "--pre-tts"],
+    # Pre-TTS narration gate (2026-09-26 QA restructure). The composition
+    # gate (final_qa.py: decode integrity + A/V sync + layout frames) runs
+    # after the Remotion render, outside these stages.
+    return run_cmd([sys.executable, str(_TOOLS_DIR / "pre_tts_qa.py"), date],
                    "qa", timeout=3600)
 
 

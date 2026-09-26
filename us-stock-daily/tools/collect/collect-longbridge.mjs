@@ -99,7 +99,7 @@ async function run() {
   const previous = path.join(OUT, '01-market.md');
   if (fs.existsSync(previous)) {
     // 既存ファイルのバックアップとして残す（前回値の比較・復旧用）。上書き失敗は致命的ではない
-    try { fs.copyFileSync(previous, path.join(OUT, '01-market.last.md')); } catch (e) { console.warn('[longbridge] バックアップ作成失敗: ' + e.message); }
+    try { fs.copyFileSync(previous, path.join(OUT, '01-market.md.bak')); } catch (e) { console.warn('[longbridge] バックアップ作成失敗: ' + e.message); }
   }
   const today = new Date().toISOString().slice(0,10);
   const lines = [];

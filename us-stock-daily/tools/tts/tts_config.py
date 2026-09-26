@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime, time as dt_time
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 TOOLS_TTS_DIR = Path(__file__).resolve().parent
 US_STOCK_DAILY = TOOLS_TTS_DIR.parent.parent
@@ -22,6 +24,33 @@ FISH_REMOTE_WORKROOT = os.getenv(
 FISH_REMOTE_WORKER = os.getenv(
     "FISH_AUDIO_TTS_REMOTE_WORKER", "/Users/cho/fish-audio/scripts/fish_audio_mlx_worker.py"
 ).strip()
+
+# Mac parallel window: work assigned to Mac must FINISH by 10:00 JST.
+MAC_WINDOW_END = dt_time(10, 0)
+MAC_CHARS_PER_SEC = float(os.getenv("FISH_MAC_CHARS_PER_SEC", "2.0"))
+MAC_WINDOW_SAFETY = min(1.0, max(0.05, float(os.getenv("FISH_MAC_WINDOW_SAFETY", "0.75"))))
+
+
+def mac_window_remaining_sec(now: datetime | None = None) -> float:
+    now = now or datetime.now(ZoneInfo("Asia/Tokyo"))
+    end = now.replace(
+        hour=MAC_WINDOW_END.hour, minute=MAC_WINDOW_END.minute,
+        second=0, microsecond=0,
+    )
+    return max(0.0, (end - now).total_seconds())
+
+
+def mac_char_budget(now: datetime | None = None) -> int:
+    """Max chars assignable to Mac so the batch is estimated to end by 10:00.
+
+    Rate default ~2.0 chars/s is measured from the 2026-09-22 run (321 remote
+    sentence jobs, upload/download included). Tune with FISH_MAC_CHARS_PER_SEC
+    and FISH_MAC_WINDOW_SAFETY.
+    """
+    remaining = mac_window_remaining_sec(now)
+    if remaining <= 0:
+        return 0
+    return max(0, int(remaining * MAC_CHARS_PER_SEC * MAC_WINDOW_SAFETY))
 
 # Audio format (Remotion friendly: 44.1kHz / mono / 16bit PCM WAV).
 SAMPLE_RATE = 44100

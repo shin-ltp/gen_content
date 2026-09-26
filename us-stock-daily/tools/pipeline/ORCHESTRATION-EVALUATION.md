@@ -120,7 +120,9 @@ run_daily.py（纯代码，参照 orchestrate.py）
 | `text_llm.py` | 統一 LLM API クライアント。Gemini + OpenAI 互換の二系統、pro/flash の二段階、指数バックオフ再試行、RPM スライディング窓レート制限、緩い JSON パース（markdown 囲み許容）、再帰スキーマ検証。 |
 | `analyze_topics.py` | 二段階トピック選定。段階0 は純コードのハードゲート（カテゴリ重み・文字数・直近3集の主アンカー重複）。段階1 は flash API で候補絞り込み。コードが本文から高信号文を抽出して 115 件でも全文へ近い証拠を渡し、タイトルのみで見落とす事故を防ぐ。段階2 は pro API で全文採点し、`validate_schema` 失敗時はエラーを付けて 1 回修復再試行する。`--stage` で部分再実行可。 |
 | `write_blocks.py` | 契約生成型の脚本執筆。A/C/D は flash JSON 呼び出し＋コード検証。B は pro で全文生成後、コードが段落分割。`episode.config.json` + `script.json` + `segment-map.json` + `draft-{A,B,C,D}.md` を一括生成し、`build_pipeline.py validate` で後置検証。 |
-| `final_qa.py` | 終検。機械検査（check_japanese / check_draft_length / validate / check-artifacts）＋任意の pro 1 回意味審査。`review/qa-report.json` に報告。終了コード: 0=合格 2=機械不合格 3=意味不合格。 |
+| `pre_tts_qa.py` | TTS投入前の文章ゲート（2026-09-26 QA再編で final_qa から分離）。全量: check_japanese / check_draft_length / 免責契約 / segment-map 段落番号一致 / tts txt==script.json。ブロック単位は `--map` で write_blocks が自動実行、`--semantic` は advisory のみ。`review/pre-tts-qa.json`。終了コード: 0=合格 2=不合格。 |
+| `visual_qa_gate.py` | visual.html 生成直後の画像・レイアウトゲート（final_qa から分離、prepare_visual_assets.py が自動実行）。機械4検（asset_refs / image_meta / preview_list_s1 / aspect_ratio）＋実DOM監査（visual_dom_audit.mjs）＋vision contact sheet。vision reject は REACQUIRE（meta=missing+unlink→次回 prepare で再取得）。`review/visual-gate.json`。終了コード: 0=合格 2=不合格 3=環境問題(advisory)。 |
+| `final_qa.py` | 終検 = Remotion合成ゲート専用（LLMゼロ、2026-09-26 再編）。decode_integrity（ffprobe -count_frames フルデコード=スロット総フレーム一致+stderr0行）、av_sync（各segment音声実在+wav長 vs durationSec）、layout_frames（各セグ中間フレーム抽出と期待shot PNGの知覚比較、END は免責静止画を両側確認）。`review/final-qa.json`。終了コード: 0=合格 2=合成欠陥。 |
 | `tts_dispatch.py` | JST 10時前は Mac SSH 到達性を探測し、到達可能なら文字数均衡で local と Mac に並列割り当て。両側完了後に `reconstruct_durations.py` で durations.json を一括再構築（並行書き込み競合の解消）。10時以降または Mac 到達不可時は local 単独で実行。 |
 | `run_daily.py` | 主編成器。collect → select → write → qa → tts の順次実行。`production/pipeline-progress.json` に原子書き込みで進捗を保存し、クラッシュ後は `--from <stage>` で再開。`--status` で状態確認。 |
 

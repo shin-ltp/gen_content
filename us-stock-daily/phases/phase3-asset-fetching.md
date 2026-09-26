@@ -129,5 +129,5 @@ Phase 3 の完了判定は「キャッシュに画像があった」では不十
 - [ ] ロゴ（列挙用）・本社実写（単独用）は brands キャッシュまたは新規取得で揃っている（共有は `assets/brands/manifest.md`、当日は `assets/manifest.jsonl` に追記済み）。単独クローズアップ画像は**社名・ロゴが視認可能**であること
 - [ ] 出所表示は新ルール準拠：本文出所なし／自作図出所なし／外部画像・チャートのみ出所あり／中国語ソースは非表示
 - [ ] チャート要求场景（§0.6 の4场景）は、指標・期間・出所が揃い manifest.jsonl に記録済み
-- [ ] B各ページの画像に `assets/image-meta.json` の keyword・portrait 記録があり、**肖像=左円形・それ以外=左全高**で表示されている（final_qa の `visual_image_meta` が PASS）
+- [ ] B各ページの画像に `assets/image-meta.json` の keyword・portrait 記録があり、**肖像=左円形・それ以外=左全高**で表示されている（visual_qa_gate の `visual_image_meta` が PASS。prepare_visual_assets.py が render 後に自動実行）
 - [ ] 全取得素材の `assets_status=fetched` 更新済み

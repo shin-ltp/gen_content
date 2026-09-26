@@ -62,6 +62,7 @@ ERROR_VOCAB = {
     "多头": "買い方",
     "空头": "売り方",
     "庄家": "主導的に買い集める大型投資家（文脈に応じて説明する）",
+    "柴油": "軽油／ディーゼル",
 }
 
 # Legitimate Japanese words that are wrong for this project's finance usage.

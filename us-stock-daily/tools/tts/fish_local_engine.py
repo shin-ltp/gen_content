@@ -34,7 +34,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fish_batch import FishJob  # noqa: E402
-from tts_config import get_issue_dir, voice_ref_paths  # noqa: E402
+from tts_config import (  # noqa: E402
+    get_issue_dir,
+    mac_char_budget,
+    voice_ref_paths,
+)
 
 API_URL = os.getenv("FISH_LOCAL_API_URL", "http://127.0.0.1:18790/v1/tts").strip()
 REQUEST_TIMEOUT_SEC = int(os.getenv("FISH_LOCAL_TTS_TIMEOUT", "1800"))
@@ -181,7 +185,7 @@ class FishLocalEngine:
         raise RuntimeError(f"local TTS failed for {out_path}: {last_err}")
 
     # ----------------------------------------------------------- public
-    def synthesize(self, jobs: list[FishJob]) -> None:
+    def synthesize(self, jobs: list[FishJob], *, force: bool = False) -> None:
         if not jobs:
             _log("no pending segments")
             return
@@ -247,8 +251,14 @@ class ParallelFishEngine:
         self.remote_root = f"{local_engine.remote_root} + {mac_engine.remote_root}"
 
     @staticmethod
-    def _split_jobs(jobs: list[FishJob]) -> tuple[list[FishJob], list[FishJob]]:
-        """Keep a segment's sentence WAVs on one host to avoid scp overlaps."""
+    def _split_jobs(
+        jobs: list[FishJob], mac_cap: int | None = None,
+    ) -> tuple[list[FishJob], list[FishJob]]:
+        """Keep a segment's sentence WAVs on one host to avoid scp overlaps.
+
+        mac_cap enforces the 10:00 JST finish rule: groups over the budget
+        move to local, largest first.
+        """
         groups: dict[str, tuple[int, list[FishJob]]] = {}
         for job in jobs:
             rel_dir = str(Path(job.rel_wav).parent.as_posix())
@@ -258,21 +268,35 @@ class ParallelFishEngine:
         local: list[FishJob] = []
         mac: list[FishJob] = []
         local_chars = mac_chars = 0
+        mac_groups: list[tuple[int, list[FishJob]]] = []
         for _, (chars, group_jobs) in sorted(groups.items()):
             if local_chars <= mac_chars:
                 local.extend(group_jobs)
                 local_chars += chars
             else:
                 mac.extend(group_jobs)
+                mac_groups.append((chars, group_jobs))
                 mac_chars += chars
+        if mac_cap is not None:
+            for chars, group_jobs in sorted(
+                mac_groups, key=lambda g: g[0], reverse=True,
+            ):
+                if mac_chars <= mac_cap:
+                    break
+                for job in group_jobs:
+                    mac.remove(job)
+                    local.append(job)
+                mac_chars -= chars
+                local_chars += chars
         _log(
             f"parallel split: local={len(local)} jobs/{local_chars} chars, "
             f"mac={len(mac)} jobs/{mac_chars} chars"
+            + (f" (cap {mac_cap})" if mac_cap is not None else "")
         )
         return local, mac
 
     def synthesize(self, jobs: list[FishJob], *, force: bool = False) -> None:
-        local_jobs, mac_jobs = self._split_jobs(jobs)
+        local_jobs, mac_jobs = self._split_jobs(jobs, mac_cap=mac_char_budget())
         if not mac_jobs:
             self.local_engine.synthesize(local_jobs, force=force)
             return

@@ -55,7 +55,10 @@ CONFIG_PATH = "production/episode.config.json"
 SCRIPT_PATH = "production/script.json"
 
 MAX_B_CHARS = 4200
-MAX_RETRIES = 3
+# opening-rest の市況検証（指数1つ以内/ビットコイン/セクター/金利）は
+# 不合格率がやや高め。エラーフィードバック付きリトライで自己回復させるため
+# 上限を引き上げる（失敗時のみ追加コスト）。
+MAX_RETRIES = 6
 BLOCKS_PER_B = 8
 
 EVENTS_PLACEHOLDER_TEXT = "イベント予告はありません。"
@@ -1205,29 +1208,33 @@ def _preview_list_slide(
     theme_count: int,
     previews: list[dict],
 ) -> str:
-    """One aggregate preview page: title list left, theme photos right."""
+    """One aggregate preview page: theme photos left (split full-height),
+    title list right. Layout contract = 2026-09-12 carousel: image on the
+    left at --img-width, topic list in the remaining content column."""
     items: list[str] = []
     photos: list[str] = []
     for i, preview in enumerate(previews):
         title = _short(str(preview.get("title", "")), 42)
         state = "active" if i == 0 else "dimmed"
         items.append(
-            f'<div class="topic-item {state}"><div class="topic-number">{i + 1}</div>'
+            f'<div class="topic-item {state}" data-idx="{i}"><div class="topic-number">{i + 1}</div>'
             f'<div class="topic-title">{_esc(title)}</div></div>'
         )
         photo = _photo(theme_image_asset(i + 1, 1), f"テーマ{i + 1}")
         photo = photo.replace(
-            'class="photo-frame"', f'class="photo-frame {state}"', 1
+            'class="photo-frame"',
+            f'class="photo-frame preview-photo {state}" data-idx="{i}"',
+            1,
         )
         photos.append(photo)
     return (
         f'\n<div class="slabel">{_esc(label)}</div>\n'
-        '<div class="slide preview-list">' + _slide_logo() +
+        '<div class="slide split">' + _slide_logo() +
         '<div class="chrome">'
         f'<div class="sec-title">本日のテーマ（{theme_count}件）</div>'
-        '<div class="preview-grid">'
-        '<div class="topic-list">' + "".join(items) + "</div>"
-        '<div class="photo-stack">' + "".join(photos) + "</div>"
+        '<div class="carousel">'
+        '<div class="visual">' + "".join(photos) + "</div>"
+        '<div class="content">' + "".join(items) + "</div>"
         "</div></div></div>\n"
     )
 
@@ -1587,6 +1594,23 @@ def tts_queue_push(date: str, block: str, blocks_done: set[str]) -> None:
         print(f"[tts-queue] prepare_tts failed for {block}: "
               f"{(r.stderr or r.stdout)[-500:]}")
         return
+
+    # Pre-TTS text gate (2026-09-25 restructure): narration wording/disclaimer/
+    # simplified-char defects must be caught HERE, before synthesis. A failure
+    # costs one block regeneration, not a post-render TTS+render loop.
+    gate = _sp.run(
+        [py, str(_TOOLS_DIR / "pre_tts_qa.py"), date,
+         "--map", f"production/tts/segment-map.{block}.json"],
+        cwd=str(_US_ROOT), capture_output=True, text=True,
+        encoding="utf-8", errors="replace")
+    gate_out = (gate.stdout or "") + (gate.stderr or "")
+    if gate.returncode != 0:
+        target = "B-<i>" if block == "B" else block
+        print(f"[tts-queue] PRE-TTS QA FAILED for block {block}; NOT queued. "
+              f"Repair then rerun write_blocks.py {date} --only {target}")
+        for line in gate_out.strip().splitlines()[-12:]:
+            print(f"  {line}")
+        return
     manifest = json.loads((tts_dir / "manifest.json").read_text(encoding="utf-8-sig"))
     wanted_ids = {str(seg.get("id", "")) for seg in wanted}
     batch_segs = [
@@ -1801,6 +1825,23 @@ def main() -> int:
         args.issue_date, outline, opening, b_texts, news_texts, event_texts)
     print(f"[write] visual-brief -> {brief_path}")
     print(f"[write] visual-data -> {visual_path}")
+
+    # Authoritative pre-TTS gate over the finalized narration (drafts +
+    # script.json + full prepared tts). Per-block gates already ran at queue
+    # push time; this catches cross-block consistency BEFORE any audio or
+    # render cost is paid (2026-09-25 QA restructure). Drafts and visual
+    # brief must exist first: they are lint targets.
+    print("[pre-tts-qa] running full narration gate...")
+    gate = subprocess.run(
+        [sys.executable, str(_TOOLS_DIR / "pre_tts_qa.py"), args.issue_date],
+        cwd=str(_US_ROOT), capture_output=True, text=True,
+        encoding="utf-8", errors="replace")
+    print((gate.stdout or "").strip()[-1500:])
+    if gate.returncode != 0:
+        print((gate.stderr or "").strip()[-500:])
+        print("[pre-tts-qa] FAILED: fix flagged blocks with --only <block>, "
+              "then rerun. Do NOT start Step 4 TTS on a failed gate output.")
+        return 3
 
     print("[validate] running build_pipeline.py validate...")
     ok, output = validate_with_build_pipeline(args.issue_date)

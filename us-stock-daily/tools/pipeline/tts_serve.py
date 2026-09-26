@@ -32,6 +32,9 @@ PID_PATH = "production/tts/tts-serve.pid"
 LOCK_PATH = "production/tts/tts-queue.lock"
 POLL_SECONDS = 15
 MAX_BATCH_ATTEMPTS = 2
+MAX_RUNNER_RESTARTS = 3
+MAC_HOST_DEFAULT = "cho@rw-mac-1"
+MAC_WORKROOT_DEFAULT = "/Users/cho/fish-audio/jobs"
 
 
 def issue_dir(date: str) -> Path:
@@ -171,6 +174,217 @@ def run_batch(date: str, block: str, *, force: bool, window_off: bool) -> int:
         return r.returncode
     except KeyboardInterrupt:
         return 130
+
+
+def _start_runner(date: str, *, force: bool = False,
+                  window_off: bool = False) -> int:
+    """Ensure exactly one background runner; 0 when alive or started."""
+    pid = running_pid(date)
+    if pid is not None:
+        print(f"[wait] runner already running (pid={pid})")
+        return 0
+    with queue_lock(date):
+        data = load_queue(date)
+        data.setdefault("batches", [])
+        data.setdefault("done", False)
+        save_queue(date, data)
+    cmd = [sys.executable, str(Path(__file__).resolve()), date, "--serve"]
+    if force:
+        cmd.append("--force")
+    if window_off:
+        cmd.append("--window-off")
+    log_path = issue_dir(date) / "review" / "tts-serve.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    if os.name == "nt":
+        proc = subprocess.Popen(
+            cmd, cwd=str(_US_ROOT), stdout=open(log_path, "ab"),
+            stderr=subprocess.STDOUT,
+            creationflags=getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0))
+    else:
+        proc = subprocess.Popen(
+            cmd, cwd=str(_US_ROOT), stdout=open(log_path, "ab"),
+            stderr=subprocess.STDOUT, start_new_session=True)
+    print(f"[wait] started runner pid={proc.pid} (log: {log_path})")
+    time.sleep(1)
+    if proc.poll() is not None:
+        print(f"[wait] runner exited early with code {proc.returncode}")
+        return 1
+    return 0
+
+
+def _mac_progress(date: str) -> dict:
+    """Read-only snapshot of remote worker progress (empty when unreachable)."""
+    host = os.getenv("FISH_AUDIO_TTS_REMOTE_HOST", MAC_HOST_DEFAULT).strip()
+    workroot = os.getenv(
+        "FISH_AUDIO_TTS_REMOTE_WORKROOT", MAC_WORKROOT_DEFAULT,
+    ).strip().rstrip("/")
+    root = f"{workroot}/usdaily/{date}"
+    script = (
+        f"for f in {root}/*/worker.progress.json; do "
+        'if [ -f "$f" ]; then printf "%s=" "$f"; cat "$f"; echo; fi; done'
+    )
+    cmd = [
+        "ssh", "-o", "ConnectTimeout=10", "-o", "BatchMode=yes",
+        "-o", "StrictHostKeyChecking=accept-new", host, script,
+    ]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
+    except (OSError, subprocess.TimeoutExpired):
+        return {}
+    if r.returncode != 0:
+        return {}
+    out: dict = {}
+    for line in r.stdout.splitlines():
+        path, sep, payload = line.partition("=")
+        if not sep:
+            continue
+        try:
+            out[path.rstrip("/").split("/")[-1]] = json.loads(payload)
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
+def _progress_signature(date: str) -> str:
+    """Everything that proves forward motion: local WAVs + Mac worker state."""
+    audio = issue_dir(date) / "production" / "audio"
+    wavs = sorted(audio.rglob("*.wav")) if audio.is_dir() else []
+    local = [
+        len(wavs),
+        sum(w.stat().st_size for w in wavs),
+        int(max((w.stat().st_mtime for w in wavs), default=0)),
+    ]
+    return json.dumps({"local": local, "mac": _mac_progress(date)},
+                      sort_keys=True)
+
+
+def _mark_batch(date: str, block: str, status: str, note: str) -> None:
+    with queue_lock(date):
+        data = load_queue(date)
+        for b in data.get("batches", []):
+            if b.get("block") == block:
+                b["status"] = status
+                b["note"] = note
+                b["finished_at"] = datetime.now().isoformat(timespec="seconds")
+                break
+        if data.get("batches") and all(
+                x.get("status") == "done" for x in data["batches"]):
+            data["done"] = True
+        save_queue(date, data)
+
+
+def _summary(date: str) -> dict:
+    data = load_queue(date)
+    return {
+        "runner_pid": running_pid(date),
+        "done": data.get("done", False),
+        "batches": [
+            {"block": b.get("block"), "status": b.get("status"),
+             "attempts": b.get("attempts"), "note": b.get("note", "")}
+            for b in data.get("batches", [])
+        ],
+    }
+
+
+def cmd_wait(args: argparse.Namespace) -> int:
+    """Bounded monitor encoding the 30-minute stall rule.
+
+    Exit codes: 0 all done, 1 failed batches, 2 timeout / unrecoverable
+    runner. Progress is judged by local WAV activity plus the read-only Mac
+    worker progress files, so a long-but-healthy remote batch survives.
+    """
+    deadline = time.time() + args.timeout_min * 60
+    stall_sec = args.stall_min * 60
+    restarts = 0
+    last_sig: str | None = None
+    last_change = time.time()
+    data = load_queue(args.issue_date)
+    batches = data.get("batches", [])
+    if batches and all(b.get("status") in ("done", "failed") for b in batches):
+        failed = [b.get("block") for b in batches if b.get("status") == "failed"]
+        print(json.dumps(_summary(args.issue_date), ensure_ascii=False))
+        return 1 if failed else 0
+    if data.get("done"):
+        print(json.dumps(_summary(args.issue_date), ensure_ascii=False))
+        return 0
+    if _start_runner(args.issue_date, force=args.force,
+                     window_off=args.window_off) != 0:
+        print(json.dumps(_summary(args.issue_date), ensure_ascii=False))
+        return 2
+
+    while time.time() < deadline:
+        data = load_queue(args.issue_date)
+        batches = data.get("batches", [])
+        terminal = all(b.get("status") in ("done", "failed")
+                       for b in batches) if batches else False
+        if terminal:
+            failed = [b.get("block") for b in batches
+                      if b.get("status") == "failed"]
+            print(json.dumps(_summary(args.issue_date), ensure_ascii=False))
+            return 1 if failed else 0
+        if data.get("done"):
+            print(json.dumps(_summary(args.issue_date), ensure_ascii=False))
+            return 0
+
+        pending = [b for b in batches if b.get("status") == "queued"]
+        running = [b for b in batches if b.get("status") == "running"]
+        if (pending or running) and running_pid(args.issue_date) is None:
+            if restarts >= MAX_RUNNER_RESTARTS:
+                print(f"[wait] runner died; restart budget exhausted "
+                      f"({restarts})")
+                print(json.dumps(_summary(args.issue_date),
+                                 ensure_ascii=False))
+                return 2
+            restarts += 1
+            print(f"[wait] runner died with pending work; restart "
+                  f"{restarts}/{MAX_RUNNER_RESTARTS}")
+            if _start_runner(args.issue_date, force=args.force,
+                             window_off=args.window_off) != 0:
+                print(json.dumps(_summary(args.issue_date),
+                                 ensure_ascii=False))
+                return 2
+
+        if running:
+            sig = _progress_signature(args.issue_date)
+            now = time.time()
+            if sig != last_sig:
+                last_sig = sig
+                last_change = now
+            elif now - last_change >= stall_sec:
+                block = str(running[0].get("block", "?"))
+                print(f"[wait] batch {block} stalled for {args.stall_min}min; "
+                      f"re-dispatching (cached WAVs are reused)")
+                cmd = [sys.executable, str(DISPATCH), args.issue_date,
+                       "--batch", block]
+                if args.force:
+                    cmd.append("--force")
+                try:
+                    code = subprocess.run(
+                        cmd, cwd=str(_US_ROOT),
+                        timeout=min(args.redispatch_min * 60,
+                                    max(60, deadline - now)),
+                    ).returncode
+                except subprocess.TimeoutExpired:
+                    code = 124
+                if code == 0:
+                    _mark_batch(args.issue_date, block, "done",
+                                "stalled; re-dispatched by --wait (exit 0)")
+                else:
+                    attempts = int(running[0].get("attempts", 1) or 1)
+                    if attempts < MAX_BATCH_ATTEMPTS:
+                        _mark_batch(args.issue_date, block, "queued",
+                                    f"stalled; re-dispatch exit {code}")
+                    else:
+                        _mark_batch(args.issue_date, block, "failed",
+                                    f"stalled; re-dispatch exit {code}")
+                last_sig = None
+                last_change = time.time()
+
+        time.sleep(args.poll_sec)
+
+    print(f"[wait] timeout after {args.timeout_min}min")
+    print(json.dumps(_summary(args.issue_date), ensure_ascii=False))
+    return 2
 
 
 def cmd_serve(args: argparse.Namespace) -> int:
@@ -336,6 +550,17 @@ def main() -> int:
                         help="mark queue done (runner exits after drain)")
     parser.add_argument("--status", action="store_true",
                         help="print queue and runner state")
+    parser.add_argument("--wait", action="store_true",
+                        help="bounded monitor: wait for completion, restart "
+                             "dead runners, re-dispatch stalled batches")
+    parser.add_argument("--timeout-min", type=int, default=180,
+                        help="--wait overall timeout in minutes (default 180)")
+    parser.add_argument("--poll-sec", type=int, default=60,
+                        help="--wait poll interval in seconds (default 60)")
+    parser.add_argument("--stall-min", type=int, default=30,
+                        help="--wait stall threshold in minutes (default 30)")
+    parser.add_argument("--redispatch-min", type=int, default=45,
+                        help="--wait re-dispatch timeout in minutes (default 45)")
     parser.add_argument("--replace", action="store_true",
                         help="start a new runner even if one appears to be alive")
     parser.add_argument("--force", action="store_true")
@@ -349,6 +574,8 @@ def main() -> int:
         return cmd_finish(args)
     if args.status:
         return cmd_status(args)
+    if args.wait:
+        return cmd_wait(args)
     parser.print_help()
     return 2
 

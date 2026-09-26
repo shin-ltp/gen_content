@@ -46,6 +46,16 @@ const COLLECTORS = [
   { name: 'email', script: 'collect-email-imap.mjs', env: { EMAIL_OUT: COLLECTION_DIR }, label: 'Gmail \u6668\u5831 (IMAP)', maxMs: 300000 }
 ];
 
+// ERN(決算)フォールバック: RSS新規0件のときだけ当日Web検索を実行する。
+// 旧号コピーは禁止。0件なら失敗扱いにして Gate #0 / メール通知へ昇格する。
+const ERN_WEB_COLLECTOR = {
+  name: 'earn-web',
+  script: 'collect-earnings-web.mjs',
+  env: { EARN_WEB_OUT: COLLECTION_DIR, EARN_WEB_DATE: TODAY },
+  label: '決算Web検索(ERNフォールバック)',
+  maxMs: 360000,
+};
+
 function listMaterialFiles(dir) {
   if (!fs.existsSync(dir)) return [];
   return fs.readdirSync(dir).filter(f => f.endsWith('.md') && f !== '00-manifest.md');
@@ -239,7 +249,16 @@ async function main() {
     const result = await runCollector(col);
     results.push(result);
   }
-  const scan = scanMaterials();
+  let scan = scanMaterials();
+  if (!NO_GATE && !scan.entries.some(e => e.catKey === 'ERN')) {
+    console.log('[collect-all] ERN 0件: 当日Web検索フォールバックを実行（旧号コピーはしない）');
+    const result = await runCollector(ERN_WEB_COLLECTOR);
+    results.push(result);
+    scan = scanMaterials();
+    if (!scan.entries.some(e => e.catKey === 'ERN')) {
+      console.error('[collect-all] ERN は Web検索でも確保できなかった。Gate #0 不合格として通知する');
+    }
+  }
   const gate = evaluateGate(scan, results, []);
   generateManifest(scan, results, gate);
   updateStatus(results, scan, gate);

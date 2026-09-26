@@ -28,8 +28,11 @@ from config import (
     COMFYUI_REMOTE_HOST,
     COMFYUI_STEPS,
     COMFYUI_VAE_NAME,
+    COMPAT_IMAGE_GENERATION_TIMEOUT,
     IMG_FALLBACK,
     IMG_GENERATION_PROVIDER,
+    OPENAI_COMPAT_API_KEY,
+    OPENAI_COMPAT_API_URL,
     OUTPUT_HEIGHT,
     OUTPUT_WIDTH,
     QWEN_IMAGE_API_KEY,
@@ -40,6 +43,92 @@ from config import (
     QWEN_IMAGE_WATERMARK,
 )
 import ssh_base
+
+
+def _compat_generation_url() -> str:
+    return f"{OPENAI_COMPAT_API_URL}/chat/completions"
+
+
+def _extract_compat_image(data: dict) -> tuple[str | None, bytes | None]:
+    """Return (remote_url, b64_payload) from a compat image response."""
+    # This gateway serves image models through chat completions and answers
+    # in the native multimodal shape: output.choices[].message.content[].image
+    native = _extract_image_url(data)
+    if native:
+        return native, None
+    for item in data.get("data") or []:
+        if not isinstance(item, dict):
+            continue
+        url = item.get("url")
+        if isinstance(url, str) and url:
+            return url, None
+        b64 = item.get("b64_json")
+        if isinstance(b64, str) and b64:
+            return None, base64.b64decode(b64)
+    return None, None
+
+
+def generate_with_compat(
+    prompt: str,
+    output_path: Path,
+    width: int = OUTPUT_WIDTH,
+    height: int = OUTPUT_HEIGHT,
+) -> bool:
+    """qwen-image-3.0-pro via the OpenAI-compatible endpoint."""
+    if not OPENAI_COMPAT_API_URL or not OPENAI_COMPAT_API_KEY:
+        print("[compat] OPENAI_COMPAT_API_URL/KEY not configured, skip")
+        return False
+    print(
+        f"[compat] generating {QWEN_IMAGE_MODEL} ({width}x{height}) "
+        f"-> {output_path.name}"
+    )
+    body = {
+        "model": QWEN_IMAGE_MODEL,
+        "messages": [{
+            "role": "user",
+            "content": [{"type": "text", "text": prompt}],
+        }],
+    }
+    data = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    req = urllib.request.Request(
+        _compat_generation_url(),
+        data=data,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {OPENAI_COMPAT_API_KEY}",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(
+            req, timeout=COMPAT_IMAGE_GENERATION_TIMEOUT
+        ) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        err = e.read().decode("utf-8", errors="replace")
+        print(f"  [compat] API HTTP {e.code}: {err[:500]}")
+        return False
+    except Exception as e:
+        print(f"  [compat] API error: {e}")
+        return False
+
+    url, raw = _extract_compat_image(payload)
+    if raw is None and url:
+        try:
+            raw = _download(url)
+        except Exception as e:
+            print(f"  [compat] download failed: {e}")
+            return False
+    if not raw:
+        print(f"  [compat] response has no image: {str(payload)[:300]}")
+        return False
+    try:
+        _save_pil(PILImage.open(io.BytesIO(raw)), output_path, width, height)
+    except Exception as e:
+        print(f"  [compat] save failed: {e}")
+        return False
+    print(f"  [compat] done: {output_path}")
+    return True
 
 
 
@@ -390,15 +479,19 @@ def generate_image(
     width: int = OUTPUT_WIDTH,
     height: int = OUTPUT_HEIGHT,
 ) -> bool:
-    """统一入口：qwen 默认，失败按 IMG_GENERATION_FALLBACK 回退到 comfyui。"""
+    """统一入口：compat(OpenAI兼容) 默认，失败按 IMG_GENERATION_FALLBACK 回退。"""
     providers = [provider or IMG_GENERATION_PROVIDER]
+    if providers == ["auto"]:
+        providers = ["compat", "qwen"]
     if IMG_FALLBACK:
-        for p in ("qwen", "comfyui"):
+        for p in ("compat", "qwen", "comfyui"):
             if p not in providers:
                 providers.append(p)
     for p in providers:
         print(f"[imagegen] provider={p}")
-        if p == "qwen":
+        if p == "compat":
+            ok = generate_with_compat(prompt, output_path, width, height)
+        elif p == "qwen":
             ok = generate_with_qwen(prompt, output_path, width, height)
         elif p == "comfyui":
             ok = generate_with_comfyui(prompt, output_path)
@@ -416,9 +509,9 @@ def main() -> int:
     parser.add_argument("-o", "--out", required=True, help="输出图片路径 (png)")
     parser.add_argument(
         "--provider",
-        choices=("qwen", "comfyui"),
+        choices=("auto", "compat", "qwen", "comfyui"),
         default=None,
-        help="强制指定 provider（默认读 env）",
+        help="强制指定 provider（默认 auto: compat -> qwen）",
     )
     parser.add_argument("--width", type=int, default=OUTPUT_WIDTH, help="输出宽度")
     parser.add_argument("--height", type=int, default=OUTPUT_HEIGHT, help="输出高度")
